@@ -203,19 +203,77 @@ with tab_text:
                 except Exception as e:
                     st.error(f"❌ **Inference Error:** {e}")
 
+# Cached Audio Detector Singleton
+@st.cache_resource(show_spinner="Initializing Wav2Vec2 audio deepfake model...")
+def get_audio_detector() -> AudioDetector:
+    detector = AudioDetector()
+    detector.load_model()
+    return detector
+
+
 # -----------------------------------------------------------------------------
-# TAB 3: AUDIO DETECTION PLACEHOLDER
+# TAB 3: AUDIO DETECTION
 # -----------------------------------------------------------------------------
 with tab_audio:
     st.subheader("🎵 Synthetic Audio & Voice Clone Detection")
-    st.info(
-        """
-        **Phase 7 Pipeline Preview:**
-        * Architecture: `garystafford/wav2vec2-deepfake-voice-detector`
-        * Input: 16,000 Hz Mono PCM Waveform
-        * Target Domain: ElevenLabs, Tacotron2, Amazon Polly vs. authentic human speech.
-        """
-    )
+    st.write("Analyzes acoustic artifacts, vocoder harmonics, and phase coherence using Wav2Vec2.")
+
+    col_aud_up, col_aud_res = st.columns([1, 1])
+
+    with col_aud_up:
+        uploaded_audio = st.file_uploader(
+            "Upload an audio file (WAV, MP3, FLAC, OGG, M4A)",
+            type=["wav", "mp3", "flac", "ogg", "m4a"],
+            key="audio_uploader",
+        )
+
+        if uploaded_audio is not None:
+            st.audio(uploaded_audio)
+            st.caption(f"File: `{uploaded_audio.name}` ({uploaded_audio.size / 1024:.1f} KB)")
+
+    with col_aud_res:
+        if uploaded_audio is not None:
+            if st.button("🚀 Analyze Audio", type="primary", use_container_width=True):
+                with st.spinner("Processing audio through Wav2Vec2 classifier..."):
+                    try:
+                        validator = FileValidator()
+                        validated_bytes = validator.validate_file(
+                            file_obj=uploaded_audio,
+                            filename=uploaded_audio.name,
+                            modality="audio",
+                        )
+
+                        detector = get_audio_detector()
+                        result: DetectionResult = detector.classify(validated_bytes)
+
+                        st.markdown("### 📋 Analysis Result")
+
+                        if result.verdict == Verdict.LIKELY_AI:
+                            st.error(f"### 🔴 Verdict: {result.verdict.value}")
+                        elif result.verdict == Verdict.LIKELY_HUMAN:
+                            st.success(f"### 🟢 Verdict: {result.verdict.value}")
+                        else:
+                            st.warning(f"### 🟡 Verdict: {result.verdict.value}")
+
+                        c_sc1, c_sc2, c_sc3 = st.columns(3)
+                        c_sc1.metric("AI Detection Score", f"{result.score * 100:.1f}%")
+                        c_sc2.metric("Confidence Level", result.confidence.value)
+                        c_sc3.metric("Latency", f"{result.processing_time_ms:.0f} ms")
+
+                        st.progress(float(result.score))
+
+                        with st.expander("🔍 Acoustic Evidence & Chunk Analysis", expanded=False):
+                            st.json(result.evidence)
+                            st.caption(f"Model ID: `{result.model_name}` | Duration: {result.evidence.get('duration_seconds', 0)}s | Chunks: {result.evidence.get('num_chunks_analyzed', 1)}")
+
+                        st.info(f"⚖️ **Disclaimer:** {result.disclaimer}")
+
+                    except (ValidationError, FileSecurityError, CorruptedFileError, UnsupportedFormatError) as e:
+                        st.error(f"❌ **Validation Error:** {e}")
+                    except Exception as e:
+                        st.error(f"❌ **Inference Error:** {e}")
+        else:
+            st.info("👆 Please upload an audio file on the left to begin analysis.")
 
 # -----------------------------------------------------------------------------
 # TAB 4: VIDEO DETECTION PLACEHOLDER

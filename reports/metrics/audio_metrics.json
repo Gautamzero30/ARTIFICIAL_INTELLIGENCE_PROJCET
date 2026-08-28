@@ -1,0 +1,147 @@
+{
+  "modality": "audio",
+  "model_name": "garystafford/wav2vec2-deepfake-voice-detector",
+  "metrics": {
+    "sample_count": 20,
+    "positive_count": 10,
+    "negative_count": 10,
+    "threshold": 0.5,
+    "accuracy": 0.5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "f1_score": 0.0,
+    "roc_auc": 0.19,
+    "confusion_matrix": [
+      [
+        10,
+        0
+      ],
+      [
+        10,
+        0
+      ]
+    ],
+    "true_positives": 0,
+    "false_positives": 0,
+    "true_negatives": 10,
+    "false_negatives": 10
+  },
+  "curves": {
+    "roc_curve": {
+      "fpr": [
+        0.0,
+        0.1,
+        0.7,
+        0.7,
+        0.8,
+        0.8,
+        0.9,
+        0.9,
+        1.0
+      ],
+      "tpr": [
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.6,
+        0.6,
+        1.0,
+        1.0
+      ],
+      "thresholds": [
+        Infinity,
+        0.1839,
+        0.0605,
+        0.0181,
+        0.0177,
+        0.012,
+        0.0117,
+        0.0065,
+        0.0035
+      ]
+    },
+    "pr_curve": {
+      "precision": [
+        0.5,
+        0.5263157894736842,
+        0.5,
+        0.47058823529411764,
+        0.4375,
+        0.4,
+        0.42857142857142855,
+        0.38461538461538464,
+        0.3333333333333333,
+        0.2727272727272727,
+        0.3,
+        0.2222222222222222,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "recall": [
+        1.0,
+        1.0,
+        0.9,
+        0.8,
+        0.7,
+        0.6,
+        0.6,
+        0.5,
+        0.4,
+        0.3,
+        0.3,
+        0.2,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "thresholds": [
+        0.0035,
+        0.0065,
+        0.0069,
+        0.0074,
+        0.0078,
+        0.0117,
+        0.012,
+        0.0128,
+        0.0138,
+        0.0177,
+        0.0181,
+        0.0208,
+        0.0254,
+        0.0605,
+        0.0871,
+        0.1205,
+        0.1593,
+        0.1734,
+        0.1747,
+        0.1839
+      ]
+    }
+  },
+  "metadata": {
+    "dataset_name": "Authentica Sanity Audio Benchmark (Human vs Synthetic Voice)",
+    "sample_count": 20,
+    "evaluation_timestamp": "2026-08-28 21:44:35"
+  },
+  "figures": {
+    "confusion_matrix": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\audio_confusion_matrix.png",
+    "roc_curve": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\audio_roc_curve.png",
+    "score_distribution": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\audio_score_distribution.png"
+  }
+}

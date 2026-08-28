@@ -1,0 +1,162 @@
+[
+  {
+    "id": "human_audio_01",
+    "filename": "human_speech_01.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_01.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_02",
+    "filename": "human_speech_02.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_02.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_03",
+    "filename": "human_speech_03.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_03.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_04",
+    "filename": "human_speech_04.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_04.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_05",
+    "filename": "human_speech_05.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_05.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_06",
+    "filename": "human_speech_06.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_06.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_07",
+    "filename": "human_speech_07.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_07.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_08",
+    "filename": "human_speech_08.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_08.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_09",
+    "filename": "human_speech_09.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_09.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "human_audio_10",
+    "filename": "human_speech_10.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\human_speech_10.wav",
+    "label": 0,
+    "category": "Human Speech Simulation",
+    "source": "Natural Acoustic Benchmark"
+  },
+  {
+    "id": "synthetic_audio_01",
+    "filename": "synthetic_voice_01.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_01.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_02",
+    "filename": "synthetic_voice_02.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_02.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_03",
+    "filename": "synthetic_voice_03.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_03.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_04",
+    "filename": "synthetic_voice_04.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_04.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_05",
+    "filename": "synthetic_voice_05.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_05.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_06",
+    "filename": "synthetic_voice_06.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_06.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_07",
+    "filename": "synthetic_voice_07.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_07.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_08",
+    "filename": "synthetic_voice_08.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_08.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_09",
+    "filename": "synthetic_voice_09.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_09.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  },
+  {
+    "id": "synthetic_audio_10",
+    "filename": "synthetic_voice_10.wav",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\audio\\synthetic_voice_10.wav",
+    "label": 1,
+    "category": "Synthetic Voice Clone Simulation",
+    "source": "Synthetic Vocoder Benchmark"
+  }
+]
