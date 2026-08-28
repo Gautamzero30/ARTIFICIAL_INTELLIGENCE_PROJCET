@@ -275,16 +275,92 @@ with tab_audio:
         else:
             st.info("👆 Please upload an audio file on the left to begin analysis.")
 
+# Cached Video Detector Singleton
+@st.cache_resource(show_spinner="Initializing Multimodal Video Detector...")
+def get_video_detector() -> VideoDetector:
+    from src.detectors.video import VideoDetector
+    detector = VideoDetector()
+    detector.load_model()
+    return detector
+
+
 # -----------------------------------------------------------------------------
-# TAB 4: VIDEO DETECTION PLACEHOLDER
+# TAB 4: VIDEO DETECTION
 # -----------------------------------------------------------------------------
 with tab_video:
-    st.subheader("🎬 Video Multimodal Late Fusion")
-    st.info(
-        """
-        **Phase 8 Pipeline Preview:**
-        * Multi-stream temporal keyframe extraction (OpenCV)
-        * Demuxed audio track acoustic analysis (Wav2Vec2)
-        * Weighted late fusion: $S_{\\text{video}} = 0.6 \\cdot S_{\\text{visual}} + 0.4 \\cdot S_{\\text{audio}}$
-        """
-    )
+    st.subheader("🎬 Video Multimodal Late Fusion Detection")
+    st.write("Extracts temporal keyframes (ViT) and acoustic audio tracks (Wav2Vec2), combining both via weighted late fusion.")
+
+    col_vid_up, col_vid_res = st.columns([1, 1])
+
+    with col_vid_up:
+        uploaded_video = st.file_uploader(
+            "Upload a video file (MP4, MOV, AVI, WebM)",
+            type=["mp4", "mov", "avi", "webm"],
+            key="video_uploader",
+        )
+
+        if uploaded_video is not None:
+            st.video(uploaded_video)
+            st.caption(f"File: `{uploaded_video.name}` ({uploaded_video.size / (1024*1024):.2f} MB)")
+
+    with col_vid_res:
+        if uploaded_video is not None:
+            if st.button("🚀 Analyze Video", type="primary", use_container_width=True):
+                with st.spinner("Extracting keyframes and demuxing audio track..."):
+                    try:
+                        validator = FileValidator()
+                        validated_bytes = validator.validate_file(
+                            file_obj=uploaded_video,
+                            filename=uploaded_video.name,
+                            modality="video",
+                        )
+
+                        detector = get_video_detector()
+                        result: DetectionResult = detector.classify(validated_bytes)
+
+                        st.markdown("### 📋 Multimodal Analysis Result")
+
+                        if result.verdict == Verdict.LIKELY_AI:
+                            st.error(f"### 🔴 Verdict: {result.verdict.value}")
+                        elif result.verdict == Verdict.LIKELY_HUMAN:
+                            st.success(f"### 🟢 Verdict: {result.verdict.value}")
+                        else:
+                            st.warning(f"### 🟡 Verdict: {result.verdict.value}")
+
+                        c_fused, c_vis, c_aud = st.columns(3)
+                        c_fused.metric("Fused AI Score", f"{result.score * 100:.1f}%")
+                        
+                        v_sc = result.evidence.get("visual_score")
+                        c_vis.metric("Visual Stream Score", f"{v_sc * 100:.1f}%" if v_sc is not None else "N/A")
+                        
+                        a_sc = result.evidence.get("audio_score")
+                        c_aud.metric("Audio Stream Score", f"{a_sc * 100:.1f}%" if a_sc is not None else "N/A (Silent)")
+
+                        st.progress(float(result.score))
+
+                        # Fusion Mode & Peak Anomaly
+                        c_m1, c_m2 = st.columns(2)
+                        c_m1.caption(f"**Fusion Mode:** `{result.evidence.get('fusion_mode', 'dual_stream')}`")
+                        peak_anom = result.evidence.get("peak_frame_anomaly", {})
+                        c_m2.caption(f"**Peak Frame Anomaly:** {peak_anom.get('peak_score', 0)*100:.1f}% at `{peak_anom.get('timestamp_sec', 0)}s`")
+
+                        # Frame-by-Frame Table Expander
+                        with st.expander("🎞️ Frame-by-Frame Visual Breakdown", expanded=False):
+                            frame_data = result.evidence.get("frame_by_frame_analysis", [])
+                            if frame_data:
+                                import pandas as pd
+                                df_frames = pd.DataFrame(frame_data)
+                                st.dataframe(df_frames, use_container_width=True)
+
+                        with st.expander("🔍 Complete Technical Evidence Payload", expanded=False):
+                            st.json(result.evidence)
+
+                        st.info(f"⚖️ **Disclaimer:** {result.disclaimer}")
+
+                    except (ValidationError, FileSecurityError, CorruptedFileError, UnsupportedFormatError) as e:
+                        st.error(f"❌ **Validation Error:** {e}")
+                    except Exception as e:
+                        st.error(f"❌ **Inference Error:** {e}")
+        else:
+            st.info("👆 Please upload a video file on the left to begin analysis.")

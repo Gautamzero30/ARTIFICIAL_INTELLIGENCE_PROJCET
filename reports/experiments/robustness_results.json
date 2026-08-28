@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-08-28 21:52:55",
+  "image_robustness": {
+    "perturbation": "JPEG Compression (Quality=30)",
+    "sample_count": 20,
+    "original_accuracy": 0.5,
+    "compressed_accuracy": 0.5,
+    "original_f1": 0.0,
+    "compressed_f1": 0.0,
+    "original_roc_auc": 1.0,
+    "compressed_roc_auc": 1.0
+  },
+  "text_robustness": {
+    "perturbation": "Text Truncation (Shortened to ~65 chars)",
+    "sample_count": 20,
+    "original_accuracy": 0.5,
+    "truncated_accuracy": 0.5,
+    "original_f1": 0.4444444444444444,
+    "truncated_f1": 0.0,
+    "original_roc_auc": 0.515,
+    "truncated_roc_auc": 0.5399999999999999
+  }
+}
