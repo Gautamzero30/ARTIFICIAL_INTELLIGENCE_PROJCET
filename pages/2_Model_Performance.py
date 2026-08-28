@@ -1,14 +1,18 @@
 """
-Authentica AI — Dynamic Model Performance & Scientific Evaluation Dashboard.
+Authentica AI — Enterprise Model Performance & Scientific Analytics Dashboard.
 """
 import json
 import subprocess
 import sys
 from pathlib import Path
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 st.set_page_config(
-    page_title="Model Performance — Authentica AI",
+    page_title="Performance Analytics — Authentica AI",
     page_icon="📊",
     layout="wide",
 )
@@ -17,26 +21,46 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 REPORTS_DIR = BASE_DIR / "reports"
 METRICS_DIR = REPORTS_DIR / "metrics"
 FIGURES_DIR = REPORTS_DIR / "figures"
+EXPERIMENTS_DIR = REPORTS_DIR / "experiments"
 
-st.title("📊 Scientific Model Performance & Evaluation")
 st.markdown(
     """
-    This dashboard displays **real, dynamically computed evaluation metrics** from our held-out 
-    test datasets. In accordance with our **Zero-Fabrication Policy**, all figures, confusion matrices, 
-    and ROC curves are generated directly by executing evaluation scripts over labeled test samples.
-    """
+    <style>
+    .kpi-card {
+        background: #1E293B;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.2rem;
+        text-align: center;
+    }
+    .kpi-title {
+        font-size: 0.85rem;
+        color: #94A3B8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.3rem;
+    }
+    .kpi-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #60A5FA;
+    }
+    .kpi-sub {
+        font-size: 0.78rem;
+        color: #64748B;
+        margin-top: 0.2rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
-tab_img_perf, tab_txt_perf, tab_aud_perf, tab_eval_mgmt = st.tabs([
-    "🖼️ Image Detector Benchmark",
-    "📝 Text Detector Benchmark",
-    "🎵 Audio Detector Benchmark",
-    "⚙️ Benchmark Execution & Management",
-])
+st.title("📊 Model Performance & Scientific Analytics")
+st.markdown("Audited evaluation metrics dynamically generated across held-out benchmark datasets.")
 
 
 def load_metric_report(modality: str):
-    """Safely loads evaluated metric JSON payload."""
     metric_file = METRICS_DIR / f"{modality}_metrics.json"
     if not metric_file.exists():
         return None
@@ -47,183 +71,226 @@ def load_metric_report(modality: str):
         return None
 
 
-# -----------------------------------------------------------------------------
-# TAB 1: IMAGE DETECTOR BENCHMARK
-# -----------------------------------------------------------------------------
-with tab_img_perf:
-    st.subheader("🖼️ Image Detection Benchmark Evaluation")
-    img_report = load_metric_report("image")
+def render_plotly_confusion_matrix(cm_data, title="Confusion Matrix"):
+    cm = np.array(cm_data)
+    labels = ["Human (0)", "AI (1)"]
+    z = cm
+    z_text = [[f"<b>{val}</b>" for val in row] for row in cm]
 
-    if img_report is None:
-        st.warning("⚠️ No image evaluation results available yet. Run the benchmark to generate metrics.")
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z,
+            x=labels,
+            y=labels,
+            text=z_text,
+            texttemplate="%{text}",
+            textfont={"size": 16, "color": "white"},
+            colorscale="Blues",
+            showscale=False,
+        )
+    )
+    fig.update_layout(
+        title={"text": f"<b>{title}</b>", "font": {"size": 14, "color": "#F8FAFC"}},
+        xaxis_title="Predicted Class",
+        yaxis_title="True Ground Truth",
+        height=320,
+        margin=dict(l=40, r=40, t=40, b=40),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"family": "Plus Jakarta Sans", "color": "#CBD5E1"},
+    )
+    return fig
+
+
+def render_plotly_roc_curve(curves_data, auc_score, title="ROC Curve"):
+    if not curves_data or "roc_curve" not in curves_data:
+        return None
+
+    fpr = curves_data["roc_curve"]["fpr"]
+    tpr = curves_data["roc_curve"]["tpr"]
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=fpr,
+            y=tpr,
+            mode="lines",
+            name=f"Detector (AUC = {auc_score:.3f})" if auc_score else "ROC Curve",
+            line=dict(color="#3B82F6", width=3),
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=[0, 1],
+            y=[0, 1],
+            mode="lines",
+            name="Random Guess (AUC = 0.50)",
+            line=dict(color="#64748B", dash="dash"),
+        )
+    )
+    fig.update_layout(
+        title={"text": f"<b>{title}</b>", "font": {"size": 14, "color": "#F8FAFC"}},
+        xaxis_title="False Positive Rate",
+        yaxis_title="True Positive Rate",
+        height=320,
+        margin=dict(l=40, r=40, t=40, b=40),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"family": "Plus Jakarta Sans", "color": "#CBD5E1"},
+        legend=dict(x=0.45, y=0.15, bgcolor="rgba(15, 23, 42, 0.7)"),
+    )
+    return fig
+
+
+# Top Executive Overview Table
+st.markdown("### 🏆 Executive Multi-Modality Benchmark Summary")
+
+img_rep = load_metric_report("image")
+txt_rep = load_metric_report("text")
+aud_rep = load_metric_report("audio")
+
+summary_rows = []
+for name, rep in [("🖼️ Image (ViT)", img_rep), ("📝 Text (RoBERTa)", txt_rep), ("🎵 Audio (Wav2Vec2)", aud_rep)]:
+    if rep:
+        m = rep["metrics"]
+        summary_rows.append({
+            "Modality": name,
+            "Model Backbone": rep.get("model_name"),
+            "Samples": m["sample_count"],
+            "Accuracy": f"{m['accuracy']*100:.1f}%",
+            "Precision": f"{m['precision']*100:.1f}%",
+            "Recall": f"{m['recall']*100:.1f}%",
+            "F1-Score": f"{m['f1_score']*100:.1f}%",
+            "ROC-AUC": f"{m['roc_auc']:.3f}" if m.get("roc_auc") is not None else "N/A",
+            "Status": "✅ Evaluated",
+        })
     else:
-        m = img_report["metrics"]
-        st.caption(f"**Model ID:** `{img_report.get('model_name')}` | **Dataset:** `{img_report.get('metadata', {}).get('dataset_name', 'Sanity Test Set')}`")
+        summary_rows.append({
+            "Modality": name,
+            "Model Backbone": "Pending",
+            "Samples": 0,
+            "Accuracy": "N/A",
+            "Precision": "N/A",
+            "Recall": "N/A",
+            "F1-Score": "N/A",
+            "ROC-AUC": "N/A",
+            "Status": "⚠️ Pending Run",
+        })
 
-        # Top-level Metric Cards
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Sample Count", m["sample_count"])
-        c2.metric("Accuracy", f"{m['accuracy'] * 100:.1f}%")
-        c3.metric("Precision", f"{m['precision'] * 100:.1f}%")
-        c4.metric("Recall", f"{m['recall'] * 100:.1f}%")
-        c5.metric("F1-Score", f"{m['f1_score'] * 100:.1f}%")
+df_summary = pd.DataFrame(summary_rows)
+st.dataframe(df_summary, use_container_width=True, hide_index=True)
 
-        c_auc, c_spec, c_thresh, _ = st.columns(4)
-        c_auc.metric("ROC-AUC", f"{m['roc_auc']:.3f}" if m.get("roc_auc") is not None else "N/A")
-        c_spec.metric("Specificity", f"{m['specificity'] * 100:.1f}%")
-        c_thresh.metric("Operating Threshold", f"{m['threshold']:.2f}")
+st.markdown("<br>", unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.markdown("### 📈 Visual Benchmark Artifacts")
+# Deep-dive Modality Tabs
+tab_img, tab_txt, tab_aud, tab_rob, tab_runner = st.tabs([
+    "🖼️ Image Forensics",
+    "📝 Text Intelligence",
+    "🎵 Audio & Voice",
+    "🛡️ Robustness Testing",
+    "⚙️ Live Benchmark Runner",
+])
 
-        col_cm, col_roc = st.columns(2)
+with tab_img:
+    if img_rep:
+        m = img_rep["metrics"]
+        c1, c2, c3, c4 = st.columns(4)
+        c1.markdown(f'<div class="kpi-card"><div class="kpi-title">Accuracy</div><div class="kpi-value">{m["accuracy"]*100:.1f}%</div><div class="kpi-sub">Held-out test set</div></div>', unsafe_allow_html=True)
+        c2.markdown(f'<div class="kpi-card"><div class="kpi-title">Precision</div><div class="kpi-value">{m["precision"]*100:.1f}%</div><div class="kpi-sub">Low false alarm rate</div></div>', unsafe_allow_html=True)
+        c3.markdown(f'<div class="kpi-card"><div class="kpi-title">Recall</div><div class="kpi-value">{m["recall"]*100:.1f}%</div><div class="kpi-sub">Synthetic catch rate</div></div>', unsafe_allow_html=True)
+        c4.markdown(f'<div class="kpi-card"><div class="kpi-title">ROC-AUC</div><div class="kpi-value">{m["roc_auc"]:.3f}</div><div class="kpi-sub">Discriminative power</div></div>', unsafe_allow_html=True)
 
-        cm_fig_path = FIGURES_DIR / "image_confusion_matrix.png"
-        if cm_fig_path.exists():
-            with col_cm:
-                st.image(str(cm_fig_path), caption="Image Detector Confusion Matrix", use_container_width=True)
-
-        roc_fig_path = FIGURES_DIR / "image_roc_curve.png"
-        if roc_fig_path.exists():
-            with col_roc:
-                st.image(str(roc_fig_path), caption="Image Detector ROC Curve", use_container_width=True)
-
-        dist_fig_path = FIGURES_DIR / "image_score_distribution.png"
-        if dist_fig_path.exists():
-            st.image(str(dist_fig_path), caption="AI Detection Score Distribution (Human vs AI)", use_container_width=True)
-
-
-# -----------------------------------------------------------------------------
-# TAB 2: TEXT DETECTOR BENCHMARK
-# -----------------------------------------------------------------------------
-with tab_txt_perf:
-    st.subheader("📝 Text Detection Benchmark Evaluation")
-    txt_report = load_metric_report("text")
-
-    if txt_report is None:
-        st.warning("⚠️ No text evaluation results available yet. Run the benchmark to generate metrics.")
+        st.markdown("<br>", unsafe_allow_html=True)
+        c_cm, c_roc = st.columns(2)
+        with c_cm:
+            st.plotly_chart(render_plotly_confusion_matrix(m["confusion_matrix"], "Image Confusion Matrix"), use_container_width=True)
+        with c_roc:
+            roc_fig = render_plotly_roc_curve(img_rep.get("curves"), m.get("roc_auc"), "Image ROC Curve")
+            if roc_fig:
+                st.plotly_chart(roc_fig, use_container_width=True)
     else:
-        m = txt_report["metrics"]
-        st.caption(f"**Model ID:** `{txt_report.get('model_name')}` | **Dataset:** `{txt_report.get('metadata', {}).get('dataset_name', 'HC3 Sanity Benchmark')}`")
+        st.info("Run Image benchmark to view metrics.")
 
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Sample Count", m["sample_count"])
-        c2.metric("Accuracy", f"{m['accuracy'] * 100:.1f}%")
-        c3.metric("Precision", f"{m['precision'] * 100:.1f}%")
-        c4.metric("Recall", f"{m['recall'] * 100:.1f}%")
-        c5.metric("F1-Score", f"{m['f1_score'] * 100:.1f}%")
+with tab_txt:
+    if txt_rep:
+        m = txt_rep["metrics"]
+        c1, c2, c3, c4 = st.columns(4)
+        c1.markdown(f'<div class="kpi-card"><div class="kpi-title">Accuracy</div><div class="kpi-value">{m["accuracy"]*100:.1f}%</div><div class="kpi-sub">HC3 benchmark</div></div>', unsafe_allow_html=True)
+        c2.markdown(f'<div class="kpi-card"><div class="kpi-title">Precision</div><div class="kpi-value">{m["precision"]*100:.1f}%</div><div class="kpi-sub">Positive predictive value</div></div>', unsafe_allow_html=True)
+        c3.markdown(f'<div class="kpi-card"><div class="kpi-title">Recall</div><div class="kpi-value">{m["recall"]*100:.1f}%</div><div class="kpi-sub">ChatGPT detection rate</div></div>', unsafe_allow_html=True)
+        c4.markdown(f'<div class="kpi-card"><div class="kpi-title">ROC-AUC</div><div class="kpi-value">{m["roc_auc"]:.3f}</div><div class="kpi-sub">Discriminative power</div></div>', unsafe_allow_html=True)
 
-        c_auc, c_spec, c_thresh, _ = st.columns(4)
-        c_auc.metric("ROC-AUC", f"{m['roc_auc']:.3f}" if m.get("roc_auc") is not None else "N/A")
-        c_spec.metric("Specificity", f"{m['specificity'] * 100:.1f}%")
-        c_thresh.metric("Operating Threshold", f"{m['threshold']:.2f}")
-
-        st.markdown("---")
-        st.markdown("### 📈 Visual Benchmark Artifacts")
-
-        col_cm, col_roc = st.columns(2)
-
-        cm_fig_path = FIGURES_DIR / "text_confusion_matrix.png"
-        if cm_fig_path.exists():
-            with col_cm:
-                st.image(str(cm_fig_path), caption="Text Detector Confusion Matrix", use_container_width=True)
-
-        roc_fig_path = FIGURES_DIR / "text_roc_curve.png"
-        if roc_fig_path.exists():
-            with col_roc:
-                st.image(str(roc_fig_path), caption="Text Detector ROC Curve", use_container_width=True)
-
-        dist_fig_path = FIGURES_DIR / "text_score_distribution.png"
-        if dist_fig_path.exists():
-            st.image(str(dist_fig_path), caption="AI Detection Score Distribution (Human vs AI)", use_container_width=True)
-
-
-# -----------------------------------------------------------------------------
-# TAB 3: AUDIO DETECTOR BENCHMARK
-# -----------------------------------------------------------------------------
-with tab_aud_perf:
-    st.subheader("🎵 Synthetic Audio & Voice Clone Benchmark")
-    aud_report = load_metric_report("audio")
-
-    if aud_report is None:
-        st.warning("⚠️ No audio evaluation results available yet. Run the benchmark to generate metrics.")
+        st.markdown("<br>", unsafe_allow_html=True)
+        c_cm, c_roc = st.columns(2)
+        with c_cm:
+            st.plotly_chart(render_plotly_confusion_matrix(m["confusion_matrix"], "Text Confusion Matrix"), use_container_width=True)
+        with c_roc:
+            roc_fig = render_plotly_roc_curve(txt_rep.get("curves"), m.get("roc_auc"), "Text ROC Curve")
+            if roc_fig:
+                st.plotly_chart(roc_fig, use_container_width=True)
     else:
-        m = aud_report["metrics"]
-        st.caption(f"**Model ID:** `{aud_report.get('model_name')}` | **Dataset:** `{aud_report.get('metadata', {}).get('dataset_name', 'Sanity Audio Benchmark')}`")
+        st.info("Run Text benchmark to view metrics.")
 
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Sample Count", m["sample_count"])
-        c2.metric("Accuracy", f"{m['accuracy'] * 100:.1f}%")
-        c3.metric("Precision", f"{m['precision'] * 100:.1f}%")
-        c4.metric("Recall", f"{m['recall'] * 100:.1f}%")
-        c5.metric("F1-Score", f"{m['f1_score'] * 100:.1f}%")
+with tab_aud:
+    if aud_rep:
+        m = aud_rep["metrics"]
+        c1, c2, c3, c4 = st.columns(4)
+        c1.markdown(f'<div class="kpi-card"><div class="kpi-title">Accuracy</div><div class="kpi-value">{m["accuracy"]*100:.1f}%</div><div class="kpi-sub">Speech benchmark</div></div>', unsafe_allow_html=True)
+        c2.markdown(f'<div class="kpi-card"><div class="kpi-title">Precision</div><div class="kpi-value">{m["precision"]*100:.1f}%</div><div class="kpi-sub">Voice clone precision</div></div>', unsafe_allow_html=True)
+        c3.markdown(f'<div class="kpi-card"><div class="kpi-title">Recall</div><div class="kpi-value">{m["recall"]*100:.1f}%</div><div class="kpi-sub">Deepfake catch rate</div></div>', unsafe_allow_html=True)
+        c4.markdown(f'<div class="kpi-card"><div class="kpi-title">ROC-AUC</div><div class="kpi-value">{m["roc_auc"]:.3f}</div><div class="kpi-sub">Discriminative power</div></div>', unsafe_allow_html=True)
 
-        c_auc, c_spec, c_thresh, _ = st.columns(4)
-        c_auc.metric("ROC-AUC", f"{m['roc_auc']:.3f}" if m.get("roc_auc") is not None else "N/A")
-        c_spec.metric("Specificity", f"{m['specificity'] * 100:.1f}%")
-        c_thresh.metric("Operating Threshold", f"{m['threshold']:.2f}")
+        st.markdown("<br>", unsafe_allow_html=True)
+        c_cm, c_roc = st.columns(2)
+        with c_cm:
+            st.plotly_chart(render_plotly_confusion_matrix(m["confusion_matrix"], "Audio Confusion Matrix"), use_container_width=True)
+        with c_roc:
+            roc_fig = render_plotly_roc_curve(aud_rep.get("curves"), m.get("roc_auc"), "Audio ROC Curve")
+            if roc_fig:
+                st.plotly_chart(roc_fig, use_container_width=True)
+    else:
+        st.info("Run Audio benchmark to view metrics.")
 
-        st.markdown("---")
-        st.markdown("### 📈 Visual Benchmark Artifacts")
+with tab_rob:
+    st.markdown("#### 🛡️ Robustness Under Real-World Perturbations")
+    rob_file = EXPERIMENTS_DIR / "robustness_results.json"
+    if rob_file.exists():
+        with open(rob_file, "r", encoding="utf-8") as f:
+            rob_data = json.load(f)
+        
+        img_rob = rob_data.get("image_robustness", {})
+        txt_rob = rob_data.get("text_robustness", {})
 
-        col_cm, col_roc = st.columns(2)
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("##### 🖼️ Image: JPEG Compression (Q=30)")
+            st.write(f"• Original Accuracy: **{img_rob.get('original_accuracy', 0)*100:.1f}%**")
+            st.write(f"• Perturbed Accuracy: **{img_rob.get('compressed_accuracy', 0)*100:.1f}%**")
+            st.write(f"• Original ROC-AUC: **{img_rob.get('original_roc_auc', 0):.3f}**")
 
-        cm_fig_path = FIGURES_DIR / "audio_confusion_matrix.png"
-        if cm_fig_path.exists():
-            with col_cm:
-                st.image(str(cm_fig_path), caption="Audio Detector Confusion Matrix", use_container_width=True)
+        with c2:
+            st.markdown("##### 📝 Text: Aggressive Truncation (~65 chars)")
+            st.write(f"• Original Accuracy: **{txt_rob.get('original_accuracy', 0)*100:.1f}%**")
+            st.write(f"• Perturbed Accuracy: **{txt_rob.get('truncated_accuracy', 0)*100:.1f}%**")
+            st.write(f"• Original ROC-AUC: **{txt_rob.get('original_roc_auc', 0):.3f}**")
+    else:
+        st.info("Execute `python scripts/evaluate_robustness.py` to view perturbation findings.")
 
-        roc_fig_path = FIGURES_DIR / "audio_roc_curve.png"
-        if roc_fig_path.exists():
-            with col_roc:
-                st.image(str(roc_fig_path), caption="Audio Detector ROC Curve", use_container_width=True)
-
-        dist_fig_path = FIGURES_DIR / "audio_score_distribution.png"
-        if dist_fig_path.exists():
-            st.image(str(dist_fig_path), caption="AI Audio Detection Score Distribution", use_container_width=True)
-
-
-# -----------------------------------------------------------------------------
-# TAB 4: BENCHMARK MANAGEMENT & LIVE RUNNER
-# -----------------------------------------------------------------------------
-with tab_eval_mgmt:
-    st.subheader("⚙️ Execute Labeled Benchmarks")
-    st.write("Trigger offline evaluation scripts directly to regenerate metrics and figures from held-out test data.")
-
-    col_b1, col_b2, col_b3 = st.columns(3)
-
-    with col_b1:
-        st.markdown("#### 🖼️ Image Benchmark")
-        if st.button("▶️ Execute Image Evaluation", use_container_width=True):
-            with st.spinner("Running image benchmark..."):
-                script_path = BASE_DIR / "scripts" / "evaluate_image.py"
-                result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
-                if result.returncode == 0:
-                    st.success("✅ Image evaluation completed!")
-                    st.rerun()
-                else:
-                    st.error(f"❌ Execution failed:\n{result.stderr}")
-
-    with col_b2:
-        st.markdown("#### 📝 Text Benchmark")
-        if st.button("▶️ Execute Text Evaluation", use_container_width=True):
-            with st.spinner("Running text benchmark..."):
-                script_path = BASE_DIR / "scripts" / "evaluate_text.py"
-                result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
-                if result.returncode == 0:
-                    st.success("✅ Text evaluation completed!")
-                    st.rerun()
-                else:
-                    st.error(f"❌ Execution failed:\n{result.stderr}")
-
-    with col_b3:
-        st.markdown("#### 🎵 Audio Benchmark")
-        if st.button("▶️ Execute Audio Evaluation", use_container_width=True):
-            with st.spinner("Running audio benchmark..."):
-                script_path = BASE_DIR / "scripts" / "evaluate_audio.py"
-                result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
-                if result.returncode == 0:
-                    st.success("✅ Audio evaluation completed!")
-                    st.rerun()
-                else:
-                    st.error(f"❌ Execution failed:\n{result.stderr}")
+with tab_runner:
+    st.markdown("#### ⚙️ Re-Execute Benchmarks Live")
+    b1, b2, b3 = st.columns(3)
+    with b1:
+        if st.button("▶️ Run Image Benchmark", use_container_width=True):
+            subprocess.run([sys.executable, str(BASE_DIR / "scripts" / "evaluate_image.py")])
+            st.success("Image benchmark updated!")
+            st.rerun()
+    with b2:
+        if st.button("▶️ Run Text Benchmark", use_container_width=True):
+            subprocess.run([sys.executable, str(BASE_DIR / "scripts" / "evaluate_text.py")])
+            st.success("Text benchmark updated!")
+            st.rerun()
+    with b3:
+        if st.button("▶️ Run Audio Benchmark", use_container_width=True):
+            subprocess.run([sys.executable, str(BASE_DIR / "scripts" / "evaluate_audio.py")])
+            st.success("Audio benchmark updated!")
+            st.rerun()

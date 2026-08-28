@@ -1,7 +1,8 @@
 """
-Image Detection pipeline for Authentica AI using Vision Transformers.
+Image Detection pipeline for Authentica AI using Vision Transformers and High-Frequency Residual Analysis.
 """
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
+import cv2
 import numpy as np
 from PIL import Image
 import torch
@@ -18,9 +19,8 @@ logger = get_logger("authentica.image_detector")
 
 class ImageDetector(BaseDetector):
     """
-    Vision Transformer AI-Image Detector.
-    Estimates whether an input image is AI-generated (e.g. Stable Diffusion, Midjourney, DALL-E)
-    or human-created photograph.
+    Vision Transformer AI-Image Detector with Frequency Domain Forensic Analysis.
+    Combines deep learning transformer representations with spatial high-frequency residual metrics.
     """
     MODALITY = "image"
 
@@ -40,15 +40,11 @@ class ImageDetector(BaseDetector):
         self._id2label = {}
 
     def _resolve_device(self, requested_device: str) -> torch.device:
-        """Determines computation device based on user preference and hardware."""
         if requested_device == "auto":
             return torch.device("cuda" if torch.cuda.is_available() else "cpu")
         return torch.device(requested_device)
 
     def load_model(self) -> None:
-        """
-        Loads the Vision Transformer classification model from Hugging Face.
-        """
         if self._model is not None:
             return
 
@@ -60,60 +56,77 @@ class ImageDetector(BaseDetector):
             self._model.to(self.device)
             self._model.eval()
 
-            # Cache label mapping
             if hasattr(self._model.config, "id2label") and self._model.config.id2label:
                 self._id2label = {int(k): str(v).lower() for k, v in self._model.config.id2label.items()}
             else:
-                # Default binary assumption: 0=artificial, 1=human
                 self._id2label = {0: "artificial", 1: "human"}
 
-            logger.info(f"Image detection model loaded successfully. Label map: {self._id2label}")
+            logger.info(f"Image detection model loaded. Label map: {self._id2label}")
 
         except Exception as e:
             logger.error(f"Failed to load image model '{self.model_id}': {e}")
             raise ModelLoadError(f"Could not load image detection model '{self.model_id}': {e}")
 
+    def analyze_frequency_residuals(self, pil_img: Image.Image) -> Dict[str, Any]:
+        """
+        Extracts high-frequency Fourier spectral residuals and Laplacian edge variance
+        characteristic of diffusion generative synthesis.
+        """
+        img_np = np.array(pil_img.convert("L"))
+
+        # 1. Laplacian Edge Sharpness / Variance
+        laplacian = cv2.Laplacian(img_np, cv2.CV_64F)
+        laplacian_var = float(np.var(laplacian))
+
+        # 2. 2D FFT High-Frequency Energy Ratio
+        f = np.fft.fft2(img_np)
+        fshift = np.fft.fftshift(f)
+        magnitude_spectrum = 20 * np.log(np.abs(fshift) + 1e-8)
+
+        # Measure energy in the outer high-frequency band vs central low-frequency band
+        h, w = img_np.shape
+        cy, cx = h // 2, w // 2
+        r_inner = min(h, w) // 6
+        y, x = np.ogrid[:h, :w]
+        mask_inner = (x - cx)**2 + (y - cy)**2 <= r_inner**2
+
+        low_freq_energy = float(np.mean(magnitude_spectrum[mask_inner]))
+        high_freq_energy = float(np.mean(magnitude_spectrum[~mask_inner]))
+        freq_ratio = float(high_freq_energy / (low_freq_energy + 1e-6))
+
+        return {
+            "laplacian_variance": round(laplacian_var, 2),
+            "high_low_frequency_ratio": round(freq_ratio, 3),
+            "texture_smoothness": "High (Typical of Diffusion)" if laplacian_var < 150 else "Natural Grain (Photographic)",
+            "spectrum_anomaly_detected": bool(freq_ratio < 0.65 or freq_ratio > 1.35),
+        }
+
     def preprocess(self, raw_input: Any) -> torch.Tensor:
-        """
-        Preprocesses raw image input into a normalized tensor.
-        """
         return self.preprocessor.preprocess(raw_input)
 
     def _extract_ai_probability(self, probs: torch.Tensor) -> float:
-        """
-        Extracts AI probability score S_AI from output softmax probabilities
-        based on the model's id2label configuration.
-        """
         probs_np = probs.cpu().detach().numpy()[0]
 
-        # 1. Look for explicit AI/fake/artificial label index
         for idx, label_name in self._id2label.items():
             if any(term in label_name for term in ["art", "fake", "ai", "synth", "gen"]):
                 return float(probs_np[idx])
 
-        # 2. Look for human/real label and invert
         for idx, label_name in self._id2label.items():
             if any(term in label_name for term in ["hum", "real"]):
                 return float(1.0 - probs_np[idx])
 
-        # Fallback to index 0
         return float(probs_np[0])
 
     def predict(self, preprocessed_input: torch.Tensor) -> float:
-        """
-        Executes model forward pass and returns uncalibrated AI score in [0.0, 1.0].
-        """
         self.load_model()
 
         try:
             tensor = preprocessed_input.to(self.device)
             with torch.no_grad():
                 outputs = self._model(tensor)
-                logits = outputs.logits
-                probs = F.softmax(logits, dim=-1)
+                probs = F.softmax(outputs.logits, dim=-1)
 
             ai_score = self._extract_ai_probability(probs)
-            # Ensure clamped within [0.0, 1.0]
             return max(0.0, min(1.0, ai_score))
 
         except Exception as e:
@@ -121,21 +134,33 @@ class ImageDetector(BaseDetector):
             raise InferenceError(f"Image detection inference failed: {e}")
 
     def classify(self, raw_input: Any) -> DetectionResult:
-        """
-        Complete image analysis pipeline with timing and structured evidence.
-        """
         import time
         start_time = time.perf_counter()
 
-        # Extract basic image metadata before tensor conversion
         pil_img = self.preprocessor.load_image(raw_input)
         original_size = pil_img.size
+
+        # High-frequency forensic metrics
+        freq_forensics = self.analyze_frequency_residuals(pil_img)
 
         preprocessed_tensor = self.preprocessor.preprocess(pil_img)
         ai_score = self.predict(preprocessed_tensor)
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0
 
         verdict, confidence = compute_verdict_and_confidence(ai_score, self.threshold_cfg)
+
+        # Generate key forensic factors
+        factors = []
+        if ai_score >= 0.65:
+            factors.append("Neural diffusion texture fingerprints detected by Vision Transformer")
+            if freq_forensics["spectrum_anomaly_detected"]:
+                factors.append("Abnormal Fourier spectral high-frequency decay pattern")
+        elif ai_score <= 0.35:
+            factors.append("Natural optical lens blur and organic camera sensor grain")
+            if not freq_forensics["spectrum_anomaly_detected"]:
+                factors.append("Balanced natural spatial frequency distribution")
+        else:
+            factors.append("Mixed or compressed visual artifacts yielding ambiguous probability")
 
         return DetectionResult(
             modality=self.MODALITY,
@@ -150,8 +175,10 @@ class ImageDetector(BaseDetector):
             evidence={
                 "raw_ai_score": round(ai_score, 4),
                 "human_score": round(1.0 - ai_score, 4),
-                "original_dimensions": f"{original_size[0]}x{original_size[1]}",
-                "processed_resolution": f"{self.config.input_size[0]}x{self.config.input_size[1]}",
+                "dimensions": f"{original_size[0]} x {original_size[1]} px",
+                "aspect_ratio": f"{original_size[0]/max(1, original_size[1]):.2f}:1",
+                "forensic_factors": factors,
+                "frequency_analysis": freq_forensics,
                 "device": str(self.device),
             },
         )

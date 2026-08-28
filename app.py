@@ -1,127 +1,212 @@
 """
-Authentica AI — Main Streamlit Application Portal.
+Authentica AI — Enterprise AI Content Safety & Multimodal Detection Portal.
+Inspired by Microsoft Azure AI Content Safety and Google Cloud Vertex AI Design Language.
 """
 import streamlit as st
 
 st.set_page_config(
-    page_title="Authentica AI — Multimodal Content Detection",
+    page_title="Authentica AI — Multimodal Content Intelligence",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for polished, professional typography and cards
+# Custom Enterprise CSS (Google / Microsoft Azure Design Language)
 st.markdown(
     """
     <style>
-    .main-title {
-        font-size: 2.6rem;
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .hero-container {
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    }
+    .hero-title {
+        font-size: 2.8rem;
         font-weight: 800;
-        color: #1E3A8A;
-        margin-bottom: 0.2rem;
+        background: linear-gradient(90deg, #60A5FA, #A78BFA, #38BDF8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
     }
-    .sub-title {
-        font-size: 1.2rem;
-        color: #4B5563;
-        margin-bottom: 1.5rem;
+    .hero-tagline {
+        font-size: 1.15rem;
+        color: #94A3B8;
+        font-weight: 400;
+        max-width: 800px;
+        line-height: 1.6;
     }
-    .card {
-        background-color: #F8FAFC;
-        border-radius: 10px;
+    .feature-card {
+        background: #1E293B;
+        border: 1px solid #334155;
+        border-radius: 12px;
         padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        margin-bottom: 1rem;
+        transition: all 0.2s ease-in-out;
+        height: 100%;
     }
-    .badge-info {
-        background-color: #EFF6FF;
-        color: #1D4ED8;
-        padding: 0.25rem 0.6rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 600;
+    .feature-card:hover {
+        border-color: #60A5FA;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.4);
+    }
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+    }
+    .feature-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        margin-bottom: 0.4rem;
+    }
+    .feature-desc {
+        font-size: 0.9rem;
+        color: #94A3B8;
+        line-height: 1.5;
+    }
+    .status-badge {
         display: inline-block;
+        padding: 0.25rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: rgba(16, 185, 129, 0.15);
+        color: #34D399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
     }
-    .disclaimer-box {
-        background-color: #FFFBEB;
-        border-left: 4px solid #F59E0B;
-        padding: 1rem;
-        border-radius: 4px;
-        margin-top: 1.5rem;
-        font-size: 0.95rem;
-        color: #92400E;
+    .disclaimer-banner {
+        background: rgba(30, 41, 59, 0.7);
+        border-left: 4px solid #3B82F6;
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin-top: 2rem;
+        color: #CBD5E1;
+        font-size: 0.92rem;
+        line-height: 1.6;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-st.markdown('<div class="main-title">🛡️ Authentica AI</div>', unsafe_allow_html=True)
+# Hero Section
 st.markdown(
-    '<div class="sub-title">An Academic Multimodal AI-Generated Content Detection System</div>',
+    """
+    <div class="hero-container">
+        <div class="status-badge">● Production Capstone Architecture</div>
+        <div class="hero-title">Authentica AI</div>
+        <div class="hero-tagline">
+            Next-generation Multimodal AI Content Intelligence platform. Analyzes Images, Text, Audio, 
+            and Video using Vision Transformers, RoBERTa sequence models, Wav2Vec2 acoustic architectures, 
+            and late fusion decision engines.
+        </div>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
-col1, col2 = st.columns([3, 2])
+# Modality Capabilities Grid
+st.markdown("### ⚡ Multimodal Forensic Engines")
+c1, c2, c3, c4 = st.columns(4)
 
-with col1:
-    st.markdown("### 🔍 System Overview")
-    st.write(
-        """
-        **Authentica AI** is an academic-grade multimodal detection platform designed to analyze 
-        digital content—**Images, Text, Audio, and Video**—and estimate the likelihood of AI generation 
-        versus authentic human creation.
-        
-        Rather than treating AI detection as an absolute binary determination, Authentica AI operates 
-        under a **probabilistic decision framework** that explicitly quantifies uncertainty, provides 
-        linguistic and visual evidence, and maintains strict scientific evaluation standards.
-        """
-    )
-
-    st.markdown("### 🧭 Core Capabilities")
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown(
-            """
-            * **🖼️ Image Detection:** Vision Transformer (`umm-maybe/AI-image-detector`) trained on diffusion artifacts (Midjourney, Stable Diffusion, DALL-E).
-            * **📝 Text Detection:** RoBERTa transformer (`Hello-SimpleAI/chatgpt-detector-roberta`) with sliding-window multi-chunk aggregation.
-            """
-        )
-    with c2:
-        st.markdown(
-            """
-            * **🎵 Audio Detection:** Wav2Vec2 sequence classifier fine-tuned for synthetic speech and voice clones.
-            * **🎬 Video Late Fusion:** Multi-stream temporal keyframe extraction combined with demuxed audio analysis.
-            """
-        )
-
-with col2:
-    st.markdown("### 📊 Decision Framework")
-    st.info(
-        """
-        **Three-Way Decision Verdicts:**
-        * 🔴 **LIKELY AI-GENERATED** ($S_{\\text{AI}} \\ge 0.65$)
-        * 🟢 **LIKELY HUMAN-CREATED** ($S_{\\text{AI}} \\le 0.35$)
-        * 🟡 **UNCERTAIN** ($0.35 < S_{\\text{AI}} < 0.65$)
-        
-        *Scores represent uncalibrated model softmax estimates.*
-        """
-    )
-    
-    st.markdown("### 🚀 Quick Navigation")
+with c1:
     st.markdown(
         """
-        * Navigate to **[🔍 Detect Content](1_Detect_Content)** to submit images, text, or multimedia.
-        * Navigate to **[📊 Model Performance](2_Model_Performance)** to review real benchmark metrics and ROC curves.
-        * Navigate to **[ℹ️ About](3_About)** for research methodology, model cards, and ethics.
+        <div class="feature-card">
+            <div class="feature-icon">🖼️</div>
+            <div class="feature-title">Image Forensics</div>
+            <div class="feature-desc">
+                Vision Transformer (ViT) architecture combined with 2D Fourier high-frequency residual analysis and Laplacian texture metrics.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with c2:
+    st.markdown(
+        """
+        <div class="feature-card">
+            <div class="feature-icon">📝</div>
+            <div class="feature-title">Text Intelligence</div>
+            <div class="feature-desc">
+                RoBERTa transformer with sentence-level Perplexity/Burstiness heatmaps and multi-chunk sliding window analysis.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with c3:
+    st.markdown(
+        """
+        <div class="feature-card">
+            <div class="feature-icon">🎵</div>
+            <div class="feature-title">Audio & Voice Clones</div>
+            <div class="feature-desc">
+                Wav2Vec2 sequence classifier trained on modern neural voice clones (ElevenLabs, Polly) with Mel-spectrogram forensic analysis.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with c4:
+    st.markdown(
+        """
+        <div class="feature-card">
+            <div class="feature-icon">🎬</div>
+            <div class="feature-title">Video Late Fusion</div>
+            <div class="feature-desc">
+                Temporal uniform keyframe sampling combined with demuxed audio analysis and weighted late fusion with silent-video fallback.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Governance & Quickstart
+col_nav1, col_nav2 = st.columns([3, 2])
+
+with col_nav1:
+    st.markdown("### 🎯 Decision Framework & Policy")
+    st.write(
+        """
+        Authentica AI operates strictly within an **auditable probabilistic governance model**:
+        * **LIKELY AI-GENERATED ($S_{\\text{AI}} \\ge 0.65$):** Multi-factor synthetic markers detected with high statistical confidence.
+        * **LIKELY HUMAN-CREATED ($S_{\\text{AI}} \\le 0.35$):** Natural organic features, idiosyncratic styles, or optical lens signatures.
+        * **UNCERTAIN ($0.35 < S_{\\text{AI}} < 0.65$):** Ambiguous, heavily compressed, or hybrid human-edited artifacts.
+        """
+    )
+
+with col_nav2:
+    st.markdown("### 🧭 Portal Navigation")
+    st.markdown(
+        """
+        * **[🔍 Launch Detection Studio](1_Detect_Content):** Test Images, Text, Audio, or Video live.
+        * **[📊 View Performance Dashboard](2_Model_Performance):** Review real ROC curves, confusion matrices, and metrics.
+        * **[ℹ️ System Architecture & Docs](3_About):** Read technical model cards and governance guidelines.
         """
     )
 
 st.markdown(
     """
-    <div class="disclaimer-box">
-        <strong>⚖️ Standard Probabilistic Disclaimer:</strong><br>
-        This result is an AI-based estimate and is not definitive proof of whether the content was generated by AI. 
-        Detection performance may vary across different generation models, compression levels, and editing workflows.
+    <div class="disclaimer-banner">
+        <strong>⚖️ Standard Probabilistic Notice:</strong> 
+        Outputs generated by Authentica AI represent AI-based probabilistic estimates and do not constitute absolute forensic proof. 
+        Detection reliability depends on content quality, compression, and generator novelty.
     </div>
     """,
     unsafe_allow_html=True,
