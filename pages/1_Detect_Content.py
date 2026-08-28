@@ -11,9 +11,11 @@ from src.core.exceptions import (
     UnsupportedFormatError,
     ValidationError,
 )
+from src.detectors.audio import AudioDetector
 from src.detectors.base import DetectionResult, Verdict
 from src.detectors.image import ImageDetector
 from src.detectors.text import TextDetector
+from src.detectors.video import VideoDetector
 from src.utils.file_validator import FileValidator
 
 st.set_page_config(
