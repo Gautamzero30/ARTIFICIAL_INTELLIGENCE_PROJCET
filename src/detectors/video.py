@@ -1,9 +1,11 @@
 """
-Multimodal Video Detection orchestrator for Authentica AI.
-Reuses Vision Transformer (ImageDetector) and Wav2Vec2 (AudioDetector) via weighted late fusion.
+Optimized Multimodal Video Detection orchestrator for Authentica AI.
+Implements batched Vision Transformer inference and fast late fusion.
 """
 from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
+import torch
+import torch.nn.functional as F
 
 from src.core.config import ThresholdConfig, VideoModelConfig
 from src.core.exceptions import ProcessingError
@@ -19,7 +21,8 @@ logger = get_logger("authentica.video_detector")
 
 class VideoDetector(BaseDetector):
     """
-    Multimodal Video AI Detector combining visual keyframe analysis and acoustic deepfake detection.
+    High-Performance Multimodal Video AI Detector.
+    Processes visual keyframes in a single batched GPU/CPU tensor forward pass.
     """
     MODALITY = "video"
 
@@ -47,43 +50,60 @@ class VideoDetector(BaseDetector):
         self.audio_detector = audio_detector or AudioDetector()
 
     def load_model(self) -> None:
-        """Loads both underlying sub-detectors."""
         self.image_detector.load_model()
         self.audio_detector.load_model()
 
     def preprocess(self, raw_input: Any) -> Tuple[List[Any], Optional[bytes], Dict[str, Any]]:
-        """
-        Extracts keyframes, audio stream, and video container metadata.
-        """
         keyframes, video_meta = self.preprocessor.extract_keyframes(raw_input)
         audio_bytes, has_audio = self.preprocessor.extract_audio_track(raw_input)
         video_meta["has_audio_track"] = has_audio
         return keyframes, audio_bytes, video_meta
 
+    def _batch_score_frames(self, keyframes: List[Any]) -> List[float]:
+        """
+        Executes a single batched tensor forward pass for all keyframes simultaneously,
+        drastically reducing inference time.
+        """
+        if not keyframes:
+            return []
+
+        try:
+            self.image_detector.load_model()
+            if not hasattr(self.image_detector, "preprocessor") or not hasattr(self.image_detector, "_model"):
+                return [self.image_detector.classify(f).score for f in keyframes]
+
+            tensors = [self.image_detector.preprocessor.preprocess(f) for f in keyframes]
+            if not all(isinstance(t, torch.Tensor) for t in tensors):
+                return [self.image_detector.classify(f).score for f in keyframes]
+
+            batch_tensor = torch.cat(tensors, dim=0).to(self.image_detector.device)
+            with torch.no_grad():
+                outputs = self.image_detector._model(batch_tensor)
+                probs = F.softmax(outputs.logits, dim=-1)
+
+            scores = []
+            for i in range(len(keyframes)):
+                single_prob = probs[i:i+1]
+                s = self.image_detector._extract_ai_probability(single_prob)
+                scores.append(max(0.0, min(1.0, float(s))))
+            return scores
+        except Exception:
+            return [self.image_detector.classify(f).score for f in keyframes]
+
     def predict(self, preprocessed_input: Any) -> float:
-        """
-        Executes multimodal late fusion prediction.
-        """
         keyframes, audio_bytes, _ = preprocessed_input
 
-        # 1. Visual stream analysis
-        frame_scores = []
-        for frame in keyframes:
-            res = self.image_detector.classify(frame)
-            frame_scores.append(res.score)
-
+        frame_scores = self._batch_score_frames(keyframes)
         visual_score = float(np.mean(frame_scores)) if frame_scores else None
 
-        # 2. Audio stream analysis
         audio_score = None
         if audio_bytes is not None:
             try:
                 a_res = self.audio_detector.classify(audio_bytes)
                 audio_score = a_res.score
             except Exception as e:
-                logger.warning(f"Audio analysis failed during video processing: {e}")
+                logger.warning(f"Audio analysis bypassed: {e}")
 
-        # 3. Multimodal late fusion
         fusion_res: FusionResult = self.fusion_engine.fuse(
             visual_score=visual_score,
             audio_score=audio_score,
@@ -91,28 +111,23 @@ class VideoDetector(BaseDetector):
         return fusion_res.fused_score
 
     def classify(self, raw_input: Any) -> DetectionResult:
-        """
-        Complete video analysis pipeline with frame breakdown and late fusion evidence.
-        """
         import time
         start_time = time.perf_counter()
 
         keyframes, audio_bytes, video_meta = self.preprocess(raw_input)
-
-        # 1. Visual Stream Analysis across sampled keyframes
-        frame_results = []
-        frame_scores = []
         timestamps = video_meta.get("sample_timestamps", [])
 
-        for idx, frame in enumerate(keyframes):
-            res = self.image_detector.classify(frame)
+        # 1. Fast Batched Visual Inference
+        frame_scores = self._batch_score_frames(keyframes)
+        frame_results = []
+        for idx, score in enumerate(frame_scores):
             t_stamp = timestamps[idx] if idx < len(timestamps) else round(idx * 0.5, 2)
-            frame_scores.append(res.score)
+            v_verdict, _ = compute_verdict_and_confidence(score, self.threshold_cfg)
             frame_results.append({
                 "frame_index": idx + 1,
                 "timestamp_sec": t_stamp,
-                "ai_score": round(res.score, 4),
-                "verdict": res.verdict.value,
+                "ai_score": round(score, 4),
+                "verdict": v_verdict.value,
             })
 
         visual_score = float(np.mean(frame_scores)) if frame_scores else None
@@ -129,7 +144,7 @@ class VideoDetector(BaseDetector):
                 audio_score = a_res.score
                 audio_evidence = a_res.evidence
             except Exception as e:
-                logger.warning(f"Audio extraction succeeded but classification failed: {e}")
+                logger.warning(f"Audio stream skipped: {e}")
 
         # 3. Multimodal Late Fusion
         fusion_result: FusionResult = self.fusion_engine.fuse(

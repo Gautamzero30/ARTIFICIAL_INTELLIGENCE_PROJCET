@@ -76,39 +76,49 @@ class TextDetector(BaseDetector):
 
     def _analyze_sentences(self, text: str) -> Tuple[List[Dict[str, Any]], Dict[str, float]]:
         """
-        Splits text into sentences, estimates length variability (burstiness),
-        and classifies individual sentences to provide visual explainability highlights.
+        Splits text into sentences, computes burstiness, and performs batched inference.
         """
-        # Split into sentences
         raw_sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if len(s.strip()) > 5]
         if not raw_sentences:
             raw_sentences = [text]
 
         sentence_lengths = [len(s.split()) for s in raw_sentences]
-        # Burstiness: variance in sentence length (AI text tends to be uniform/monotone, human text is bursty)
         length_variance = float(np.var(sentence_lengths)) if len(sentence_lengths) > 1 else 10.0
         burstiness_score = float(np.std(sentence_lengths) / (np.mean(sentence_lengths) + 1e-6))
 
-        sentence_results = []
-        for s in raw_sentences:
-            # Score individual sentence if long enough, else use heuristic
-            s_words = len(s.split())
-            if s_words >= 8 and self._model is not None and self._tokenizer is not None:
-                try:
-                    inputs = self._tokenizer(s, return_tensors="pt", truncation=True, max_length=128).to(self.device)
-                    with torch.no_grad():
-                        out = self._model(**inputs)
-                        probs = F.softmax(out.logits, dim=-1)
-                        s_score = self._extract_ai_probability(probs)
-                except Exception:
-                    s_score = 0.5
-            else:
-                s_score = 0.5
+        # Filter sentences long enough for scoring
+        valid_indices = [i for i, s in enumerate(raw_sentences) if len(s.split()) >= 6]
+        sentence_scores = {i: 0.5 for i in range(len(raw_sentences))}
 
+        if valid_indices and self._model is not None and self._tokenizer is not None:
+            try:
+                valid_texts = [raw_sentences[i] for i in valid_indices]
+                inputs = self._tokenizer(
+                    valid_texts,
+                    padding=True,
+                    truncation=True,
+                    max_length=128,
+                    return_tensors="pt",
+                ).to(self.device)
+
+                with torch.no_grad():
+                    outputs = self._model(**inputs)
+                    probs = F.softmax(outputs.logits, dim=-1)
+
+                for idx_pos, orig_idx in enumerate(valid_indices):
+                    prob_slice = probs[idx_pos:idx_pos+1]
+                    s_score = self._extract_ai_probability(prob_slice)
+                    sentence_scores[orig_idx] = float(s_score)
+            except Exception as e:
+                logger.warning(f"Batched sentence scoring fallback: {e}")
+
+        sentence_results = []
+        for i, s in enumerate(raw_sentences):
+            s_score = sentence_scores.get(i, 0.5)
             risk = "AI-Generated Pattern" if s_score >= 0.65 else ("Human Pattern" if s_score <= 0.35 else "Neutral")
             sentence_results.append({
                 "sentence": s,
-                "word_count": s_words,
+                "word_count": len(s.split()),
                 "ai_score": round(s_score, 3),
                 "pattern": risk,
             })
