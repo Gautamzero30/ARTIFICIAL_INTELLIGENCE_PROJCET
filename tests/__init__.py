@@ -1,0 +1,3 @@
+"""
+Authentica AI test suite.
+"""

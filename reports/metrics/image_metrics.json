@@ -1,0 +1,132 @@
+{
+  "modality": "image",
+  "model_name": "umm-maybe/AI-image-detector",
+  "metrics": {
+    "sample_count": 20,
+    "positive_count": 10,
+    "negative_count": 10,
+    "threshold": 0.5,
+    "accuracy": 0.5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "specificity": 1.0,
+    "f1_score": 0.0,
+    "roc_auc": 1.0,
+    "confusion_matrix": [
+      [
+        10,
+        0
+      ],
+      [
+        10,
+        0
+      ]
+    ],
+    "true_positives": 0,
+    "false_positives": 0,
+    "true_negatives": 10,
+    "false_negatives": 10
+  },
+  "curves": {
+    "roc_curve": {
+      "fpr": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "tpr": [
+        0.0,
+        0.1,
+        1.0,
+        1.0
+      ],
+      "thresholds": [
+        Infinity,
+        0.2189921736717224,
+        0.09302394837141037,
+        0.02621854469180107
+      ]
+    },
+    "pr_curve": {
+      "precision": [
+        0.5,
+        0.5263157894736842,
+        0.5555555555555556,
+        0.5882352941176471,
+        0.625,
+        0.6666666666666666,
+        0.7142857142857143,
+        0.7692307692307693,
+        0.8333333333333334,
+        0.9090909090909091,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "recall": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.9,
+        0.8,
+        0.7,
+        0.6,
+        0.5,
+        0.4,
+        0.3,
+        0.2,
+        0.1,
+        0.0
+      ],
+      "thresholds": [
+        0.02621854469180107,
+        0.02814333513379097,
+        0.02891816571354866,
+        0.03419237583875656,
+        0.047031156718730927,
+        0.049676381051540375,
+        0.05116920545697212,
+        0.05436320975422859,
+        0.06737542897462845,
+        0.07385838776826859,
+        0.09302394837141037,
+        0.10091852396726608,
+        0.10238168388605118,
+        0.11635822057723999,
+        0.12310010194778442,
+        0.14328089356422424,
+        0.143511101603508,
+        0.14921678602695465,
+        0.17511948943138123,
+        0.2189921736717224
+      ]
+    }
+  },
+  "metadata": {
+    "dataset_name": "Authentica Sanity Image Benchmark",
+    "sample_count": 20,
+    "evaluation_timestamp": "2026-08-28 21:19:33"
+  },
+  "figures": {
+    "confusion_matrix": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\image_confusion_matrix.png",
+    "roc_curve": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\image_roc_curve.png",
+    "score_distribution": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\image_score_distribution.png"
+  }
+}

@@ -1,0 +1,142 @@
+[
+  {
+    "filename": "human_photo_01.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_01.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_02.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_02.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_03.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_03.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_04.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_04.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_05.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_05.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_06.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_06.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_07.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_07.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_08.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_08.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_09.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_09.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "human_photo_10.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\human_photo_10.jpg",
+    "label": 0,
+    "category": "Human Photographic",
+    "source": "Natural Simulation Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_01.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_01.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_02.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_02.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_03.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_03.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_04.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_04.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_05.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_05.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_06.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_06.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_07.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_07.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_08.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_08.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_09.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_09.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  },
+  {
+    "filename": "ai_diffusion_10.jpg",
+    "path": "D:\\nextjs\\New folder1\\Authentica project\\data\\test\\image\\ai_diffusion_10.jpg",
+    "label": 1,
+    "category": "Synthetic Diffusion",
+    "source": "Synthetic Diffusion Benchmark"
+  }
+]
