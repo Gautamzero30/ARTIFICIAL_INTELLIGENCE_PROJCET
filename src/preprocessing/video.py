@@ -132,8 +132,8 @@ class VideoPreprocessor:
         video_path, is_temp = self._save_temp_video(video_input)
 
         try:
-            import librosa
             try:
+                import librosa
                 # Load first 10 seconds of audio with duration cap for lightning speed
                 y, sr = librosa.load(video_path, sr=16000, mono=True, duration=10.0)
                 if y is not None and len(y) > 1600:  # at least 0.1s
