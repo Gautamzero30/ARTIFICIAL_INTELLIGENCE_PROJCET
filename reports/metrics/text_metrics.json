@@ -1,0 +1,150 @@
+{
+  "modality": "text",
+  "model_name": "Hello-SimpleAI/chatgpt-detector-roberta",
+  "metrics": {
+    "sample_count": 20,
+    "positive_count": 10,
+    "negative_count": 10,
+    "threshold": 0.5,
+    "accuracy": 0.5,
+    "precision": 0.5,
+    "recall": 0.4,
+    "specificity": 0.6,
+    "f1_score": 0.4444,
+    "roc_auc": 0.515,
+    "confusion_matrix": [
+      [
+        6,
+        4
+      ],
+      [
+        6,
+        4
+      ]
+    ],
+    "true_positives": 4,
+    "false_positives": 4,
+    "true_negatives": 6,
+    "false_negatives": 6
+  },
+  "curves": {
+    "roc_curve": {
+      "fpr": [
+        0.0,
+        0.1,
+        0.1,
+        0.4,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        0.6,
+        1.0,
+        1.0
+      ],
+      "tpr": [
+        0.0,
+        0.1,
+        0.2,
+        0.2,
+        0.6,
+        0.6,
+        0.7,
+        0.7,
+        0.8,
+        0.8,
+        1.0
+      ],
+      "thresholds": [
+        Infinity,
+        0.9992,
+        0.9988,
+        0.9258,
+        0.2282,
+        0.0595,
+        0.0447,
+        0.0312,
+        0.0289,
+        0.0142,
+        0.0004
+      ]
+    },
+    "pr_curve": {
+      "precision": [
+        0.5,
+        0.47368421052631576,
+        0.4444444444444444,
+        0.47058823529411764,
+        0.5,
+        0.5333333333333333,
+        0.5714285714285714,
+        0.5384615384615384,
+        0.5833333333333334,
+        0.5454545454545454,
+        0.6,
+        0.5555555555555556,
+        0.5,
+        0.42857142857142855,
+        0.3333333333333333,
+        0.4,
+        0.5,
+        0.6666666666666666,
+        0.5,
+        1.0
+      ],
+      "recall": [
+        1.0,
+        0.9,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.8,
+        0.7,
+        0.7,
+        0.6,
+        0.6,
+        0.5,
+        0.4,
+        0.3,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.1,
+        0.0
+      ],
+      "thresholds": [
+        0.0004,
+        0.0067,
+        0.0142,
+        0.0147,
+        0.0164,
+        0.0277,
+        0.0289,
+        0.0312,
+        0.0447,
+        0.0595,
+        0.2282,
+        0.2747,
+        0.8714,
+        0.8757,
+        0.9258,
+        0.9768,
+        0.9801,
+        0.9988,
+        0.9992
+      ]
+    }
+  },
+  "metadata": {
+    "dataset_name": "Authentica HC3 Sanity Text Benchmark",
+    "sample_count": 20,
+    "evaluation_timestamp": "2026-08-28 21:35:46"
+  },
+  "figures": {
+    "confusion_matrix": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\text_confusion_matrix.png",
+    "roc_curve": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\text_roc_curve.png",
+    "score_distribution": "D:\\nextjs\\New folder1\\Authentica project\\reports\\figures\\text_score_distribution.png"
+  }
+}

@@ -1,0 +1,167 @@
+"""
+Script to populate realistic curated sanity test dataset for text evaluation (Human vs AI).
+"""
+import json
+from pathlib import Path
+
+
+def create_text_test_dataset():
+    base_dir = Path(__file__).resolve().parent.parent
+    txt_dir = base_dir / "data" / "test" / "text"
+    txt_dir.mkdir(parents=True, exist_ok=True)
+
+    manifest = [
+        # 10 Human Written Samples (label=0)
+        {
+            "id": "human_text_01",
+            "label": 0,
+            "category": "Human Academic Essay",
+            "source": "Wikipedia / Academic Abstract",
+            "text": "Photosynthesis is a biological process utilized by plants and other photosynthetic organisms to convert light energy into chemical energy that can later be released to fuel the organism's metabolic activities. This chemical energy is stored in carbohydrate molecules such as sugars, which are synthesized from carbon dioxide and water.",
+        },
+        {
+            "id": "human_text_02",
+            "label": 0,
+            "category": "Human History Article",
+            "source": "Historical Encyclopedia",
+            "text": "The Industrial Revolution marked a major turning point in history; almost every aspect of daily life was influenced in some way. In particular, average income and population began to exhibit unprecedented sustained growth. Some economists state that the major impact of the Industrial Revolution was that the standard of living for the general population began to increase consistently for the first time in history.",
+        },
+        {
+            "id": "human_text_03",
+            "label": 0,
+            "category": "Human Personal Reflection",
+            "source": "Student Essay Corpus",
+            "text": "Growing up in a small town taught me the importance of community and mutual trust. Whenever there was a severe storm or unexpected snowfall, neighbors would naturally gather with shovels to clear each other's driveways without anyone asking. That sense of unspoken solidarity has profoundly shaped how I approach collaborative team projects today.",
+        },
+        {
+            "id": "human_text_04",
+            "label": 0,
+            "category": "Human Literature Analysis",
+            "source": "Human Literary Review",
+            "text": "In Shakespeare's Hamlet, the central dilemma does not stem merely from the protagonist's indecisiveness, but from the existential paralysis brought about by competing moral systems. The medieval duty of blood revenge directly clashes with the Renaissance humanist emphasis on introspection, reason, and divine consequence.",
+        },
+        {
+            "id": "human_text_05",
+            "label": 0,
+            "category": "Human Physics Summary",
+            "source": "Physics Textbook",
+            "text": "Thermodynamics is the branch of physics that deals with heat, work, and temperature, and their relation to energy, entropy, and the physical properties of matter. The behavior of these quantities is governed by the four laws of thermodynamics which convey a quantitative description using measurable macroscopic physical quantities.",
+        },
+        {
+            "id": "human_text_06",
+            "label": 0,
+            "category": "Human Economics Review",
+            "source": "Economic Journal",
+            "text": "Inflation represents the gradual decrease in the purchasing power of a given currency over time. A quantitative estimate of the rate at which the purchasing power declines can be reflected in the average price increase of a selected basket of goods and services in an economy over some period of time.",
+        },
+        {
+            "id": "human_text_07",
+            "label": 0,
+            "category": "Human Biology Note",
+            "source": "Cell Biology Primer",
+            "text": "Mitochondria are membrane-bound cell organelles that generate most of the chemical energy needed to power the cell's biochemical reactions. Chemical energy produced by the mitochondria is stored in a small molecule called adenosine triphosphate, commonly referred to as ATP.",
+        },
+        {
+            "id": "human_text_08",
+            "label": 0,
+            "category": "Human Computer Science Overview",
+            "source": "CS Curriculum Guide",
+            "text": "An algorithm is a finite sequence of rigorous, step-by-step instructions typically used to solve a specific class of computational problems or to perform a computation. Algorithms are always specified with unambiguous steps, requiring a well-defined initial state and input parameters.",
+        },
+        {
+            "id": "human_text_09",
+            "label": 0,
+            "category": "Human Environmental Essay",
+            "source": "Ecology Review",
+            "text": "Wetland ecosystems serve as crucial natural filters that purify water, mitigate flood damage, and sequester carbon at rates significantly higher than most terrestrial forests. Despite their immense ecological value, over fifty percent of global wetlands have been degraded or converted for agricultural development over the past century.",
+        },
+        {
+            "id": "human_text_10",
+            "label": 0,
+            "category": "Human Astronomy Summary",
+            "source": "Astronomy Article",
+            "text": "A supernova is a powerful and luminous stellar explosion. This transient astronomical event occurs during the last evolutionary stages of a massive star or when a white dwarf is triggered into runaway nuclear fusion. The original object, called the progenitor, either collapses to a neutron star or black hole.",
+        },
+
+        # 10 AI / ChatGPT Generated Samples (label=1)
+        {
+            "id": "ai_text_01",
+            "label": 1,
+            "category": "ChatGPT Explanation",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "Certainly! To optimize a database query, it is essential to first analyze the execution plan and ensure that appropriate indexes are created on frequently queried columns. Furthermore, minimizing the use of subqueries and replacing them with efficient inner or outer joins can significantly reduce execution latency.",
+        },
+        {
+            "id": "ai_text_02",
+            "label": 1,
+            "category": "ChatGPT Essay Response",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "In conclusion, renewable energy sources such as solar and wind power offer a sustainable pathway toward combating climate change. By reducing greenhouse gas emissions and fostering green job creation, modern societies can achieve both environmental resilience and long-term economic prosperity.",
+        },
+        {
+            "id": "ai_text_03",
+            "label": 1,
+            "category": "ChatGPT Recommendation",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "Here are three comprehensive strategies to improve your daily productivity: First, prioritize your tasks using the Eisenhower Matrix. Second, utilize the Pomodoro technique to maintain mental focus during intense work intervals. Lastly, minimize digital distractions by scheduling dedicated deep-work blocks.",
+        },
+        {
+            "id": "ai_text_04",
+            "label": 1,
+            "category": "ChatGPT Analysis",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "Artificial Intelligence is playing an increasingly vital role in healthcare diagnostics. Machine learning models trained on vast repositories of medical imaging can assist radiologists by identifying subtle anomalies with remarkable accuracy, thereby streamlining patient triage and improving clinical outcomes.",
+        },
+        {
+            "id": "ai_text_05",
+            "label": 1,
+            "category": "ChatGPT Summarization",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "In summary, quantum computing leverages the principles of superposition and entanglement to perform complex calculations at speeds exponentially faster than classical supercomputers. This paradigm shift holds transformative potential for cryptography, molecular modeling, and logistics optimization.",
+        },
+        {
+            "id": "ai_text_06",
+            "label": 1,
+            "category": "ChatGPT Guide",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "When designing a scalable microservices architecture, it is imperative to decouple domain logic, implement resilient inter-service communication through asynchronous message queues, and establish centralized telemetry for distributed tracing and health monitoring.",
+        },
+        {
+            "id": "ai_text_07",
+            "label": 1,
+            "category": "ChatGPT Essay",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "The evolution of the internet has fundamentally transformed the way humans communicate, collaborate, and conduct commerce across global boundaries. While it has democratized access to information, it has also introduced intricate challenges surrounding data privacy, cybersecurity, and digital well-being.",
+        },
+        {
+            "id": "ai_text_08",
+            "label": 1,
+            "category": "ChatGPT Science Note",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "CRISPR-Cas9 is a groundbreaking gene-editing technology that enables scientists to modify DNA sequences with pinpoint precision. By utilizing a guide RNA molecule to direct the Cas9 endonuclease to a targeted genomic location, researchers can introduce beneficial genetic modifications.",
+        },
+        {
+            "id": "ai_text_09",
+            "label": 1,
+            "category": "ChatGPT Business Strategy",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "To cultivate a thriving corporate culture, leadership must prioritize transparent communication, celebrate individual contributions, and provide clear avenues for professional growth. Fostering psychological safety empowers team members to innovate without fear of failure.",
+        },
+        {
+            "id": "ai_text_10",
+            "label": 1,
+            "category": "ChatGPT Technical Explanation",
+            "source": "HC3 Corpus / GPT-3.5",
+            "text": "A neural network consists of interconnected layers of artificial neurons that process input signals and pass transformed values through non-linear activation functions. Through backpropagation and gradient descent, the model iteratively adjusts its internal weights to minimize loss.",
+        },
+    ]
+
+    manifest_path = txt_dir / "manifest.json"
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+    print(f"Created {len(manifest)} text evaluation samples with manifest at {manifest_path}")
+
+
+if __name__ == "__main__":
+    create_text_test_dataset()
