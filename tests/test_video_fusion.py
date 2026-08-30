@@ -91,7 +91,7 @@ def test_video_detector_classification_with_mocked_subdetectors():
 
     detector = VideoDetector(
         video_config=VideoModelConfig(visual_weight=0.6, audio_weight=0.4),
-        threshold_config=ThresholdConfig(upper_threshold=0.65, lower_threshold=0.35),
+        threshold_config=ThresholdConfig(upper_threshold=0.45, lower_threshold=0.40),
         image_detector=mock_img_detector,
         audio_detector=mock_aud_detector,
     )
@@ -116,7 +116,8 @@ def test_video_detector_classification_with_mocked_subdetectors():
     # Fused: (0.6 * 0.85) + (0.4 * 0.75) = 0.51 + 0.30 = 0.81
     assert pytest.approx(result.score, 0.01) == 0.81
     assert result.verdict == Verdict.LIKELY_AI
-    assert result.confidence == ConfidenceLevel.MEDIUM
+    assert result.confidence == ConfidenceLevel.HIGH
     assert "frame_by_frame_analysis" in result.evidence
     assert "peak_frame_anomaly" in result.evidence
     assert len(result.evidence["frame_by_frame_analysis"]) == 4
+

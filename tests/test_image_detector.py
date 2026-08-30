@@ -70,7 +70,7 @@ def test_image_detector_classification_with_mocked_model():
     """Verify end-to-end classify() method with mocked ViT outputs."""
     detector = ImageDetector(
         model_config=ImageModelConfig(device="cpu"),
-        threshold_config=ThresholdConfig(upper_threshold=0.65, lower_threshold=0.35),
+        threshold_config=ThresholdConfig(upper_threshold=0.45, lower_threshold=0.40),
     )
 
     # Mock HF AutoModel
@@ -102,8 +102,9 @@ def test_image_detector_human_classification():
     """Verify human score correctly mapped to LIKELY HUMAN-CREATED."""
     detector = ImageDetector(
         model_config=ImageModelConfig(device="cpu"),
-        threshold_config=ThresholdConfig(upper_threshold=0.65, lower_threshold=0.35),
+        threshold_config=ThresholdConfig(upper_threshold=0.45, lower_threshold=0.40),
     )
+
 
     mock_model = MagicMock()
     mock_model.config.id2label = {0: "artificial", 1: "human"}

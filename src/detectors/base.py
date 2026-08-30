@@ -54,33 +54,66 @@ class DetectionResult:
         }
 
 
+def get_verdict(
+    ai_score: float,
+    threshold_cfg: Optional[ThresholdConfig] = None,
+) -> Verdict:
+    """
+    Centralized 3-way decision rule:
+      - score < 0.40       -> LIKELY HUMAN-CREATED
+      - 0.40 <= score < 0.45 -> UNCERTAIN
+      - score >= 0.45      -> LIKELY AI-GENERATED
+    """
+    cfg = threshold_cfg or ThresholdConfig()
+    ai_score = max(0.0, min(1.0, float(ai_score)))
+
+    if ai_score < cfg.lower_threshold:
+        return Verdict.LIKELY_HUMAN
+    elif ai_score < cfg.upper_threshold:
+        return Verdict.UNCERTAIN
+    else:
+        return Verdict.LIKELY_AI
+
+
 def compute_verdict_and_confidence(
     ai_score: float,
     threshold_cfg: Optional[ThresholdConfig] = None,
 ) -> tuple[Verdict, ConfidenceLevel]:
     """
-    Classifies continuous AI score into 3-way verdict and confidence level.
-    Score S_AI in [0.0, 1.0]:
-      - S_AI >= upper_threshold -> LIKELY AI-GENERATED
-      - S_AI <= lower_threshold -> LIKELY HUMAN-CREATED
-      - otherwise              -> UNCERTAIN
+    Classifies continuous AI score into a deterministic 3-way verdict and confidence level:
+      - score < lower_threshold (e.g. < 0.40)  -> LIKELY HUMAN-CREATED
+      - lower_threshold <= score < upper_threshold (0.40 <= S < 0.45) -> UNCERTAIN
+      - score >= upper_threshold (e.g. >= 0.45) -> LIKELY AI-GENERATED
+
+    Confidence reflects distance from the decision boundary:
+      - High: Strong statistical separation far from threshold (> 0.70 or < 0.20)
+      - Medium: Moderate signal with clear margin
+      - Low: Near decision boundary or within uncertain zone
     """
     cfg = threshold_cfg or ThresholdConfig()
     ai_score = max(0.0, min(1.0, float(ai_score)))
+    verdict = get_verdict(ai_score, cfg)
 
-    if ai_score >= cfg.upper_threshold:
-        verdict = Verdict.LIKELY_AI
-        # Higher distance above upper threshold means higher confidence
-        confidence = ConfidenceLevel.HIGH if ai_score >= 0.85 else ConfidenceLevel.MEDIUM
-    elif ai_score <= cfg.lower_threshold:
-        verdict = Verdict.LIKELY_HUMAN
-        # Lower score below lower threshold means higher confidence
-        confidence = ConfidenceLevel.HIGH if ai_score <= 0.15 else ConfidenceLevel.MEDIUM
+    if verdict == Verdict.LIKELY_AI:
+        if ai_score >= 0.70:
+            confidence = ConfidenceLevel.HIGH
+        elif ai_score >= 0.55:
+            confidence = ConfidenceLevel.MEDIUM
+        else:
+            confidence = ConfidenceLevel.LOW
+    elif verdict == Verdict.LIKELY_HUMAN:
+        if ai_score <= 0.20:
+            confidence = ConfidenceLevel.HIGH
+        elif ai_score <= 0.30:
+            confidence = ConfidenceLevel.MEDIUM
+        else:
+            confidence = ConfidenceLevel.LOW
     else:
-        verdict = Verdict.UNCERTAIN
         confidence = ConfidenceLevel.LOW
 
     return verdict, confidence
+
+
 
 
 class BaseDetector(ABC):

@@ -136,27 +136,50 @@ class AudioPreprocessor:
 
         return chunks
 
-    def preprocess(
+    def load_and_chunk(
         self,
         audio_input: Union[str, Path, bytes, BinaryIO],
-    ) -> Tuple[List[torch.Tensor], Dict[str, Union[int, float]]]:
+    ) -> Tuple[List[np.ndarray], Dict[str, Union[int, float]]]:
         """
-        Complete preprocessing pipeline: loads, converts to mono, resamples to 16kHz,
-        normalizes, and converts chunks into PyTorch tensors.
+        Loads audio and returns raw 1-D float32 numpy waveform chunks suitable
+        for passing directly to the Hugging Face feature extractor.
+
+        Peak normalisation is NOT applied here — the Wav2Vec2FeatureExtractor
+        performs its own zero-mean / unit-variance normalisation (do_normalize=True)
+        per the model card.  Applying an additional peak normalisation step on top
+        would be an undocumented double-normalisation that changes the input
+        distribution relative to training.
+
+        Returns:
+            (chunk_waveforms, metadata)
+              chunk_waveforms: List of 1-D float32 np.ndarray at self.target_sr Hz.
+              metadata: dict with duration, sample rates, and num_chunks.
         """
         raw_waveform, orig_sr = self.load_audio(audio_input)
         duration_sec = len(raw_waveform) / float(orig_sr)
 
         resampled = self.resample(raw_waveform, orig_sr)
-        normalized = self.normalize(resampled)
-        chunks = self.chunk_waveform(normalized)
-
-        tensor_chunks = [torch.from_numpy(c).float().unsqueeze(0) for c in chunks]
+        # Do NOT apply peak normalisation — let the feature extractor normalise.
+        chunks = self.chunk_waveform(resampled)
 
         metadata = {
             "original_sample_rate": orig_sr,
             "target_sample_rate": self.target_sr,
             "duration_seconds": round(duration_sec, 2),
-            "num_chunks": len(tensor_chunks),
+            "num_chunks": len(chunks),
         }
+        return chunks, metadata
+
+    def preprocess(
+        self,
+        audio_input: Union[str, Path, bytes, BinaryIO],
+    ) -> Tuple[List[torch.Tensor], Dict[str, Union[int, float]]]:
+        """
+        Legacy preprocessing pipeline that returns PyTorch tensors.
+        Kept for compatibility with callers that have not yet migrated to
+        load_and_chunk().  New code should use load_and_chunk() instead.
+        """
+        chunks, metadata = self.load_and_chunk(audio_input)
+        tensor_chunks = [torch.from_numpy(c).float().unsqueeze(0) for c in chunks]
         return tensor_chunks, metadata
+

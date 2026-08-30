@@ -83,15 +83,19 @@
 * **Score Extraction:** Aggregates chunk-level forward passes via mean and peak scoring.
 
 ### 3. 🎵 Audio Detection Pipeline
-* **Model:** `garystafford/wav2vec2-deepfake-voice-detector` (`Wav2Vec2ForSequenceClassification` fine-tuned on ElevenLabs, Uberduck, Amazon Polly vs. LibriSpeech).
-* **Preprocessing:** Mono conversion, 16,000 Hz resampling, peak amplitude normalization, and 4-second chunking.
+* **Model Checkpoint:** `garystafford/wav2vec2-deepfake-voice-detector` (`Wav2Vec2ForSequenceClassification` with 24 hidden layers, 1024 hidden dimension, 16 attention heads, ~315M parameters).
+* **Preprocessing:** Raw mono 16,000 Hz resampling via `Wav2Vec2FeatureExtractor`, waveform peak normalization, and 4-second chunking.
+* **Label Mapping Contract:** Verified at runtime as `Class 0: 'real'`, `Class 1: 'fake'`.
+* **Score Nomenclature:** Output is strictly designated as an **Uncalibrated Softmax Score** ($S_{\text{AI}} \in [0.0, 1.0]$).
+* **Domain Limitations:** Trained on English speech benchmarks (ASVspoof 2021, Deepfake-in-the-Wild, ElevenLabs, Amazon Polly). Performance on unseen zero-shot generators (e.g. Google Gemini, XTTS) and non-English phonetic structures is subject to domain shift.
+* **Provenance:** Provenance verification (e.g., Google SynthID, C2PA) is decoupled from acoustic classification and marked unavailable unless cryptographic verification keys are provided.
 
 ### 4. 🎬 Video Detection Pipeline & Late Fusion
-* **Visual Stream:** OpenCV uniform temporal keyframe extraction ($N=8$ frames) passed through `ImageDetector`.
-* **Audio Stream:** Audio track demuxed and passed through `AudioDetector`.
+* **Visual Stream:** OpenCV uniform temporal keyframe extraction ($N=8$ frames) passed through `ImageDetector` with full spatial resolution preservation.
+* **Audio Stream:** Demuxed with RMS energy validation; silent/unvoiced tracks are filtered out to prevent dilution.
 * **Weighted Late Fusion:**
-  $$S_{\text{video}} = w_{\text{visual}} \cdot S_{\text{visual}} + w_{\text{audio}} \cdot S_{\text{audio}} \quad (w_{\text{visual}}=0.6, w_{\text{audio}}=0.4)$$
-* **Fallback Behavior:** Silent videos automatically transition to visual-only evaluation ($w_{\text{visual}} = 1.0$) with explicit UI notification.
+  $$S_{\text{video}} = w_{\text{visual}} \cdot S_{\text{visual}} + w_{\text{audio}} \cdot S_{\text{audio}}$$
+* **Synthetic Dominance:** High visual AI confidence ($S_{\text{visual}} \ge 0.65$) takes precedence ($85\%-90\%$ weight) over non-synthetic ambient audio.
 
 ---
 
@@ -102,7 +106,7 @@ Predictions are partitioned into three distinct operational intervals:
 $$\text{Verdict} = \begin{cases} 
 \text{LIKELY AI-GENERATED} & \text{if } S_{\text{AI}} \ge 0.65 \\ 
 \text{LIKELY HUMAN-CREATED} & \text{if } S_{\text{AI}} \le 0.35 \\ 
-\text{UNCERTAIN} & \text{if } 0.35 < S_{\text{AI}} < 0.65
+\text{UNCERTAIN (HYBRID MIXTURE)} & \text{if } 0.35 < S_{\text{AI}} < 0.65
 \end{cases}$$
 
 ---
@@ -113,7 +117,7 @@ $$\text{Verdict} = \begin{cases}
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Image** | `umm-maybe/AI-image-detector` | ViT-Base/16-224 | AI vs Human Image Classification | MIT | RGB $224 \times 224 \times 3$ Tensor | ~343 MB |
 | **Text** | `Hello-SimpleAI/chatgpt-detector-roberta` | RoBERTa-base | Human vs ChatGPT Sequence Classification | Apache 2.0 | Tokenized Text ($\le 512$ tokens) | ~499 MB |
-| **Audio** | `garystafford/wav2vec2-deepfake-voice-detector` | Wav2Vec2 Seq Head | Synthetic Voice / Deepfake Speech Detection | Apache 2.0 | 16kHz Mono PCM Waveform | ~378 MB |
+| **Audio** | `garystafford/wav2vec2-deepfake-voice-detector` | Wav2Vec2 Large (24L/1024D) | Synthetic Voice / Deepfake Speech Detection | Apache 2.0 | 16kHz Mono PCM Waveform | ~1.18 GB |
 | **Video** | `Authentica-Multimodal-Late-Fusion` | ViT + Wav2Vec2 | Dual-Stream Late Fusion | MIT / Apache | MP4/WebM Container | Multi-stream |
 
 ---

@@ -19,8 +19,8 @@ logger = get_logger("authentica.image_detector")
 
 class ImageDetector(BaseDetector):
     """
-    Vision Transformer AI-Image Detector with Frequency Domain Forensic Analysis.
-    Combines deep learning transformer representations with spatial high-frequency residual metrics.
+    Vision Transformer AI-Image Detector.
+    Produces uncalibrated AI Likeness Detection Scores.
     """
     MODALITY = "image"
 
@@ -69,8 +69,7 @@ class ImageDetector(BaseDetector):
 
     def analyze_frequency_residuals(self, pil_img: Image.Image) -> Dict[str, Any]:
         """
-        Extracts high-frequency Fourier spectral residuals and Laplacian edge variance
-        characteristic of diffusion generative synthesis.
+        Extracts mathematical Fourier spectral residuals and Laplacian edge variance.
         """
         img_np = np.array(pil_img.convert("L"))
 
@@ -83,7 +82,6 @@ class ImageDetector(BaseDetector):
         fshift = np.fft.fftshift(f)
         magnitude_spectrum = 20 * np.log(np.abs(fshift) + 1e-8)
 
-        # Measure energy in the outer high-frequency band vs central low-frequency band
         h, w = img_np.shape
         cy, cx = h // 2, w // 2
         r_inner = min(h, w) // 6
@@ -97,7 +95,7 @@ class ImageDetector(BaseDetector):
         return {
             "laplacian_variance": round(laplacian_var, 2),
             "high_low_frequency_ratio": round(freq_ratio, 3),
-            "texture_smoothness": "High (Typical of Diffusion)" if laplacian_var < 150 else "Natural Grain (Photographic)",
+            "texture_smoothness": "High" if laplacian_var < 150 else "Standard Texture",
             "spectrum_anomaly_detected": bool(freq_ratio < 0.65 or freq_ratio > 1.35),
         }
 
@@ -149,18 +147,19 @@ class ImageDetector(BaseDetector):
 
         verdict, confidence = compute_verdict_and_confidence(ai_score, self.threshold_cfg)
 
-        # Generate key forensic factors
-        factors = []
-        if ai_score >= 0.65:
-            factors.append("Neural diffusion texture fingerprints detected by Vision Transformer")
+        # Strictly factual evidence (no fabricated assertions)
+        score_pct = ai_score * 100.0
+        factors = [
+            f"Vision Transformer Model Classification Score: {score_pct:.1f}% AI Likeness",
+        ]
+        if ai_score > self.threshold_cfg.upper_threshold:
+            factors.append("Feature representations align with the detector's synthetic training distribution")
             if freq_forensics["spectrum_anomaly_detected"]:
-                factors.append("Abnormal Fourier spectral high-frequency decay pattern")
-        elif ai_score <= 0.35:
-            factors.append("Natural optical lens blur and organic camera sensor grain")
-            if not freq_forensics["spectrum_anomaly_detected"]:
-                factors.append("Balanced natural spatial frequency distribution")
+                factors.append("Observed high-frequency Fourier spectral decay anomaly")
+        elif ai_score < self.threshold_cfg.lower_threshold:
+            factors.append("Feature representations align with the detector's authentic photographic training distribution")
         else:
-            factors.append("Mixed or compressed visual artifacts yielding ambiguous probability")
+            factors.append("Classification score falls within the uncertain decision band (40%–45%)")
 
         return DetectionResult(
             modality=self.MODALITY,

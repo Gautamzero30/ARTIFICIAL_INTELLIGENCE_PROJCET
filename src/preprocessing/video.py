@@ -21,10 +21,11 @@ class VideoPreprocessor:
     def __init__(
         self,
         sample_frames: int = 6,
-        max_duration_sec: int = 60,
+        max_duration_sec: int = 50,
     ):
         self.sample_frames = sample_frames
         self.max_duration_sec = max_duration_sec
+
 
     def _save_temp_video(self, video_input: Union[str, Path, bytes, BinaryIO]) -> Tuple[str, bool]:
         if isinstance(video_input, (str, Path)):
@@ -89,12 +90,6 @@ class VideoPreprocessor:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, int(idx))
                 ret, frame_bgr = cap.read()
                 if ret and frame_bgr is not None:
-                    # Resize to max 512px height for faster processing
-                    h, w = frame_bgr.shape[:2]
-                    if max(h, w) > 512:
-                        scale = 512.0 / max(h, w)
-                        frame_bgr = cv2.resize(frame_bgr, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
-
                     frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
                     pil_img = Image.fromarray(frame_rgb)
                     frames.append(pil_img)
@@ -127,7 +122,7 @@ class VideoPreprocessor:
         video_input: Union[str, Path, bytes, BinaryIO],
     ) -> Tuple[Optional[bytes], bool]:
         """
-        Fast audio demuxing with 10-second duration cap for instant latency.
+        Fast audio demuxing with silence filtering and energy validation.
         """
         video_path, is_temp = self._save_temp_video(video_input)
 
@@ -137,16 +132,19 @@ class VideoPreprocessor:
                 # Load first 10 seconds of audio with duration cap for lightning speed
                 y, sr = librosa.load(video_path, sr=16000, mono=True, duration=10.0)
                 if y is not None and len(y) > 1600:  # at least 0.1s
-                    import wave
-                    buf = io.BytesIO()
-                    with wave.open(buf, "wb") as wf:
-                        wf.setnchannels(1)
-                        wf.setsampwidth(2)
-                        wf.setframerate(16000)
-                        clipped = np.clip(y, -1.0, 1.0)
-                        pcm16 = (clipped * 32767).astype(np.int16)
-                        wf.writeframes(pcm16.tobytes())
-                    return buf.getvalue(), True
+                    rms = float(np.sqrt(np.mean(y**2)))
+                    # If audio is essentially silent (rms < 0.005), treat as silent video
+                    if rms >= 0.005:
+                        import wave
+                        buf = io.BytesIO()
+                        with wave.open(buf, "wb") as wf:
+                            wf.setnchannels(1)
+                            wf.setsampwidth(2)
+                            wf.setframerate(16000)
+                            clipped = np.clip(y, -1.0, 1.0)
+                            pcm16 = (clipped * 32767).astype(np.int16)
+                            wf.writeframes(pcm16.tobytes())
+                        return buf.getvalue(), True
             except Exception:
                 pass
 

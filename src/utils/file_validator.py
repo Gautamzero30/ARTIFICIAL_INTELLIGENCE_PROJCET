@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import BinaryIO, Optional, Union
 
-from src.core.config import SecurityConfig
+from src.core.config import SecurityConfig, load_settings
 from src.core.exceptions import (
     CorruptedFileError,
     FileSecurityError,
@@ -56,7 +56,7 @@ class FileValidator:
     """
 
     def __init__(self, security_cfg: Optional[SecurityConfig] = None):
-        self.security_cfg = security_cfg or SecurityConfig()
+        self.security_cfg = security_cfg or load_settings().security
 
     def validate_file(
         self,
@@ -76,6 +76,8 @@ class FileValidator:
         if isinstance(file_obj, bytes):
             data = file_obj
         elif hasattr(file_obj, "read"):
+            if hasattr(file_obj, "seek"):
+                file_obj.seek(0)
             data = file_obj.read()
             if hasattr(file_obj, "seek"):
                 file_obj.seek(0)
@@ -116,22 +118,28 @@ class FileValidator:
 
     def _verify_magic_bytes(self, data: bytes, ext: str, modality: str) -> None:
         """
-        Inspects header bytes to detect extension spoofing.
+        Inspects header bytes to detect corrupt or dangerous files while supporting valid formats.
         """
         header = data[:64]
         ext_clean = ext.lstrip(".").lower()
         
+        # Valid image headers
+        is_jpeg = header.startswith(b"\xFF\xD8\xFF")
+        is_png = header.startswith(b"\x89PNG\r\n\x1a\n")
+        is_webp = header.startswith(b"RIFF") and b"WEBP" in header[:16]
+        is_bmp = header.startswith(b"BM")
+
         # JPEG
         if ext_clean in ["jpg", "jpeg"]:
-            if not header.startswith(b"\xFF\xD8\xFF"):
+            if not (is_jpeg or is_png or is_webp or is_bmp):
                 raise CorruptedFileError("File header does not match JPEG magic signature (possible format spoofing).")
         # PNG
         elif ext_clean == "png":
-            if not header.startswith(b"\x89PNG\r\n\x1a\n"):
+            if not (is_png or is_jpeg or is_webp or is_bmp):
                 raise CorruptedFileError("File header does not match PNG magic signature.")
         # WEBP / WAV / AVI (RIFF containers)
         elif ext_clean == "webp":
-            if not (header.startswith(b"RIFF") and b"WEBP" in header[:16]):
+            if not (is_webp or is_png or is_jpeg or is_bmp):
                 raise CorruptedFileError("File header does not match WebP RIFF signature.")
         elif ext_clean == "wav":
             if not (header.startswith(b"RIFF") and b"WAVE" in header[:16]):

@@ -135,6 +135,10 @@ class VideoDetector(BaseDetector):
         peak_frame_idx = int(np.argmax(frame_scores)) if frame_scores else 0
         peak_timestamp = timestamps[peak_frame_idx] if peak_frame_idx < len(timestamps) else 0.0
 
+        # If keyframes contain high synthetic confidence, prevent mean dilution from static/transition frames
+        if frame_scores and peak_visual_score >= 0.65:
+            visual_score = 0.6 * float(np.mean(frame_scores)) + 0.4 * peak_visual_score
+
         # 2. Audio Stream Analysis
         audio_score = None
         audio_evidence = {}

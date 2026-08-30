@@ -54,14 +54,27 @@ class LateFusionEngine:
             v_score = max(0.0, min(1.0, float(visual_score)))
             a_score = max(0.0, min(1.0, float(audio_score)))
 
-            fused = (self.default_visual_weight * v_score) + (self.default_audio_weight * a_score)
+            # If either modality shows clear AI synthesis (>= 0.65), late fusion should be driven by the synthetic stream
+            if v_score >= 0.65 and a_score < 0.50:
+                applied_v_w = 0.85
+                applied_a_w = 0.15
+                fused = max(v_score * 0.90 + a_score * 0.10, 0.65)
+            elif a_score >= 0.65 and v_score < 0.50:
+                applied_v_w = 0.15
+                applied_a_w = 0.85
+                fused = max(v_score * 0.10 + a_score * 0.90, 0.65)
+            else:
+                applied_v_w = self.default_visual_weight
+                applied_a_w = self.default_audio_weight
+                fused = (self.default_visual_weight * v_score) + (self.default_audio_weight * a_score)
+
             fused_clamped = max(0.0, min(1.0, float(fused)))
 
             evidence = {
                 "visual_score": round(v_score, 4),
                 "audio_score": round(a_score, 4),
-                "applied_visual_weight": self.default_visual_weight,
-                "applied_audio_weight": self.default_audio_weight,
+                "applied_visual_weight": applied_v_w,
+                "applied_audio_weight": applied_a_w,
                 "visual_evidence": v_ev,
                 "audio_evidence": a_ev,
             }
@@ -70,8 +83,8 @@ class LateFusionEngine:
                 fused_score=fused_clamped,
                 visual_score=v_score,
                 audio_score=a_score,
-                visual_weight=self.default_visual_weight,
-                audio_weight=self.default_audio_weight,
+                visual_weight=applied_v_w,
+                audio_weight=applied_a_w,
                 fusion_mode="dual_stream",
                 evidence=evidence,
             )

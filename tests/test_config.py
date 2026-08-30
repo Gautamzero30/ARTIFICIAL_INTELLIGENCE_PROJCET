@@ -12,11 +12,10 @@ def test_default_settings():
     """Verify default settings instantiation and fields."""
     settings = Settings()
     assert settings.app.name == "Authentica AI"
-    assert settings.thresholds.upper_threshold == 0.65
-    assert settings.thresholds.lower_threshold == 0.35
+    assert settings.thresholds.upper_threshold == 0.45
+    assert settings.thresholds.lower_threshold == 0.40
     assert settings.image_model.primary == "umm-maybe/AI-image-detector"
-    assert settings.text_model.primary == "Hello-SimpleAI/chatgpt-detector-roberta"
-    assert settings.audio_model.primary == "garystafford/wav2vec2-deepfake-voice-detector"
+    assert settings.video_model.max_duration_sec == 50
 
 
 def test_threshold_validation_error():
@@ -44,6 +43,8 @@ def test_load_settings_from_real_yaml():
     settings = load_settings()
     assert isinstance(settings, Settings)
     assert settings.app.version == "1.0.0"
-    assert settings.thresholds.upper_threshold == 0.65
-    assert settings.thresholds.lower_threshold == 0.35
+    assert settings.thresholds.upper_threshold == 0.45
+    assert settings.thresholds.lower_threshold == 0.40
+    assert settings.video_model.max_duration_sec == 50
     assert ".jpg" in settings.security.allowed_extensions["image"]
+

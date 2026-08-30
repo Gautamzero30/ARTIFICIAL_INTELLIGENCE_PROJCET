@@ -19,14 +19,16 @@ class AppConfig:
 
 @dataclass(frozen=True)
 class ThresholdConfig:
-    upper_threshold: float = 0.65
-    lower_threshold: float = 0.35
+    upper_threshold: float = 0.45  # S_AI > 0.45  -> LIKELY AI-GENERATED
+    lower_threshold: float = 0.40  # S_AI < 0.40  -> LIKELY HUMAN-CREATED
+    # 0.40 <= S_AI <= 0.45        -> UNCERTAIN
 
     def validate(self) -> None:
         if not (0.0 <= self.lower_threshold < self.upper_threshold <= 1.0):
             raise ValidationError(
                 f"Invalid threshold range: lower ({self.lower_threshold}) must be < upper ({self.upper_threshold}) within [0.0, 1.0]"
             )
+
 
 
 @dataclass(frozen=True)
@@ -60,7 +62,7 @@ class AudioModelConfig:
 @dataclass(frozen=True)
 class VideoModelConfig:
     sample_frames: int = 8
-    max_duration_sec: int = 60
+    max_duration_sec: int = 50
     visual_weight: float = 0.6
     audio_weight: float = 0.4
 
@@ -71,9 +73,9 @@ class VideoModelConfig:
 
 @dataclass(frozen=True)
 class SecurityConfig:
-    max_image_size_mb: int = 15
-    max_audio_size_mb: int = 25
-    max_video_size_mb: int = 50
+    max_image_size_mb: int = 25
+    max_audio_size_mb: int = 50
+    max_video_size_mb: int = 250
     max_text_characters: int = 50000
     allowed_extensions: Dict[str, List[str]] = field(default_factory=lambda: {
         "image": [".jpg", ".jpeg", ".png", ".webp", ".bmp"],
@@ -92,7 +94,8 @@ class SecurityConfig:
 @dataclass(frozen=True)
 class Settings:
     app: AppConfig = field(default_factory=AppConfig)
-    thresholds: ThresholdConfig = field(default_factory=ThresholdConfig)
+    thresholds: ThresholdConfig = field(default_factory=lambda: ThresholdConfig(upper_threshold=0.45, lower_threshold=0.40))
+    video_thresholds: ThresholdConfig = field(default_factory=lambda: ThresholdConfig(upper_threshold=0.45, lower_threshold=0.40))
     image_model: ImageModelConfig = field(default_factory=ImageModelConfig)
     text_model: TextModelConfig = field(default_factory=TextModelConfig)
     audio_model: AudioModelConfig = field(default_factory=AudioModelConfig)
@@ -131,10 +134,17 @@ def load_settings(config_path: Optional[Path] = None) -> Settings:
     )
 
     thresh_cfg = ThresholdConfig(
-        upper_threshold=float(thresh_data.get("upper_threshold", 0.65)),
-        lower_threshold=float(thresh_data.get("lower_threshold", 0.35)),
+        upper_threshold=float(thresh_data.get("upper_threshold", 0.45)),
+        lower_threshold=float(thresh_data.get("lower_threshold", 0.40)),
     )
     thresh_cfg.validate()
+
+    vid_thresh_data = raw_cfg.get("video_thresholds", {})
+    vid_thresh_cfg = ThresholdConfig(
+        upper_threshold=float(vid_thresh_data.get("upper_threshold", 0.45)),
+        lower_threshold=float(vid_thresh_data.get("lower_threshold", 0.40)),
+    )
+    vid_thresh_cfg.validate()
 
     img_data = models_data.get("image", {})
     img_cfg = ImageModelConfig(
@@ -167,16 +177,16 @@ def load_settings(config_path: Optional[Path] = None) -> Settings:
     vid_data = models_data.get("video", {})
     vid_cfg = VideoModelConfig(
         sample_frames=int(vid_data.get("sample_frames", 8)),
-        max_duration_sec=int(vid_data.get("max_duration_sec", 60)),
+        max_duration_sec=int(vid_data.get("max_duration_sec", 50)),
         visual_weight=float(vid_data.get("visual_weight", 0.6)),
         audio_weight=float(vid_data.get("audio_weight", 0.4)),
     )
     vid_cfg.validate()
 
     sec_cfg = SecurityConfig(
-        max_image_size_mb=int(sec_data.get("max_image_size_mb", 15)),
-        max_audio_size_mb=int(sec_data.get("max_audio_size_mb", 25)),
-        max_video_size_mb=int(sec_data.get("max_video_size_mb", 50)),
+        max_image_size_mb=int(sec_data.get("max_image_size_mb", 25)),
+        max_audio_size_mb=int(sec_data.get("max_audio_size_mb", 50)),
+        max_video_size_mb=int(sec_data.get("max_video_size_mb", 250)),
         max_text_characters=int(sec_data.get("max_text_characters", 50000)),
         allowed_extensions=sec_data.get("allowed_extensions", SecurityConfig().allowed_extensions),
         allowed_mimes=sec_data.get("allowed_mimes", SecurityConfig().allowed_mimes),
@@ -185,6 +195,7 @@ def load_settings(config_path: Optional[Path] = None) -> Settings:
     return Settings(
         app=app_cfg,
         thresholds=thresh_cfg,
+        video_thresholds=vid_thresh_cfg,
         image_model=img_cfg,
         text_model=txt_cfg,
         audio_model=aud_cfg,
